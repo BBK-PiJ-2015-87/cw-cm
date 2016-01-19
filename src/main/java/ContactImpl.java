@@ -53,7 +53,7 @@ public class ContactImpl implements Contact, Serializable {
     /**
      * Add notes about the contact.
      * If notes are not empty, notes will be added to the existing ones after
-     * a space.
+     * a space. Leading and trailing white spaces are trimmed.
      *
      * @param note the notes to be added
      */
