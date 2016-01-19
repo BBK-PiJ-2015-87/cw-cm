@@ -20,7 +20,7 @@ public class ContactImplTest {
     public void setUp() {
         id = 50;
         name = "Mark";
-        notes = "Note";
+        notes = "Note.";
         contact = new ContactImpl(id, name, notes);
     }
 
@@ -40,9 +40,24 @@ public class ContactImplTest {
     }
 
     @Test
-    public void shouldReturnEmptyStringNotesIfNotesAreNotProvided() throws Exception {
+    public void shouldReturnEmptyStringIfNotesAreNotProvided() throws Exception {
         contact = new ContactImpl(id, name, null);
         assertNotNull(contact.getNotes());
         assertEquals("", contact.getNotes());
+    }
+
+    @Test
+    public void shouldAddNoteAfterSpaceIfNotesExist() throws Exception {
+        String newNote = "New note.";
+        contact.addNotes(newNote);
+        assertEquals(notes + " " + newNote, contact.getNotes());
+    }
+
+    @Test
+    public void shouldReplaceNotesIfTheyAreEmpty() throws Exception {
+        String newNote = "New note.";
+        contact = new ContactImpl(id, name, null);
+        contact.addNotes(newNote);
+        assertEquals(newNote, contact.getNotes());
     }
 }

@@ -56,6 +56,6 @@ public class ContactImpl implements Contact {
      */
     @Override
     public void addNotes(String note) {
-
+        notes = (notes.equals("")) ? note : notes + " " + note;
     }
 }
