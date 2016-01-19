@@ -1,9 +1,12 @@
 import interfaces.Contact;
 
+import java.io.Serializable;
+import java.util.Objects;
+
 /**
  * Created by Workstation on 19/01/16.
  */
-public class ContactImpl implements Contact {
+public class ContactImpl implements Contact, Serializable {
     private int id;
     private String name;
     private String notes;
@@ -11,7 +14,7 @@ public class ContactImpl implements Contact {
     public ContactImpl(int id, String name, String notes) {
         this.id = id;
         this.name = name;
-        this.notes = (notes == null) ? "" : notes;
+        this.notes = (notes == null) ? "" : notes.trim();
     }
 
     /**
@@ -56,6 +59,22 @@ public class ContactImpl implements Contact {
      */
     @Override
     public void addNotes(String note) {
+        note = note.trim();
         notes = (notes.equals("")) ? note : notes + " " + note;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ContactImpl contact = (ContactImpl) o;
+        return id == contact.id &&
+                Objects.equals(name, contact.name) &&
+                Objects.equals(notes, contact.notes);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, name, notes);
     }
 }
