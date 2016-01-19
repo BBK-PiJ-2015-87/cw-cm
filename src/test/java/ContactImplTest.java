@@ -11,8 +11,8 @@ import static org.junit.Assert.assertEquals;
 public class ContactImplTest {
     Contact contact;
     int id;
-    String name = "Name";
-    String notes = "note";
+    String name;
+    String notes;
 
     @Before
     public void setUp() {
