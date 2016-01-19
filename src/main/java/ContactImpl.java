@@ -25,7 +25,7 @@ public class ContactImpl implements Contact {
     }
 
     public String getName() {
-        return null;
+        return name;
     }
 
     public String getNotes() {

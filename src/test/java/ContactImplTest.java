@@ -23,13 +23,13 @@ public class ContactImplTest {
     }
 
     @Test
-    public void testGetId() throws Exception {
+    public void shouldReturnCorrectId() throws Exception {
         assertEquals(id, contact.getId());
     }
 
     @Test
-    public void testGetName() throws Exception {
-
+    public void shouldReturnCorrectName() throws Exception {
+        assertEquals(name, contact.getName());
     }
 
     @Test
