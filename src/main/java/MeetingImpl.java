@@ -5,7 +5,7 @@ import java.util.Calendar;
 import java.util.Set;
 
 /**
- * Created by Workstation on 19/01/16.
+ * Created by Vladimirs Ivanovs on 19/01/16.
  */
 public class MeetingImpl implements Meeting {
     private int id;

@@ -8,7 +8,7 @@ import java.util.*;
 import static org.junit.Assert.assertEquals;
 
 /**
- * Created by Workstation on 19/01/16.
+ * Created by Vladimirs Ivanovs on 19/01/16.
  */
 public class MeetingImplTest {
     int id;
