@@ -108,6 +108,22 @@ public class ContactImplTest {
     }
 
     @Test
+    public void contactsShouldBeEqualIfNullNames() throws Exception {
+        contact2 = new ContactImpl(50, null, new String("NewNote."));
+        contact  = new ContactImpl(50, null, new String("NewNote."));
+        assertEquals(contact.hashCode(), contact2.hashCode());
+        assertEquals(contact, contact2);
+    }
+
+    @Test
+    public void contactsShouldBeEqualIfNullNamesAndNotes() throws Exception {
+        contact2 = new ContactImpl(50, null, null);
+        contact  = new ContactImpl(50, null, null);
+        assertEquals(contact.hashCode(), contact2.hashCode());
+        assertEquals(contact, contact2);
+    }
+
+    @Test
     public void contactsShouldNotBeEqualIfDifferentID() throws Exception {
         contact2 = new ContactImpl(51, new String("Mark"), new String("Note."));
         assertNotEquals(contact.hashCode(), contact2.hashCode());
@@ -134,21 +150,5 @@ public class ContactImplTest {
         contact2 = new ContactImpl(50, new String("Mark"), new String("NewNote."));
         assertNotEquals(contact.hashCode(), contact2.hashCode());
         assertNotEquals(contact, contact2);
-    }
-
-    @Test
-    public void contactsShouldBeEqualIfNullNames() throws Exception {
-        contact2 = new ContactImpl(50, null, new String("NewNote."));
-        contact  = new ContactImpl(50, null, new String("NewNote."));
-        assertEquals(contact.hashCode(), contact2.hashCode());
-        assertEquals(contact, contact2);
-    }
-
-    @Test
-    public void contactsShouldBeEqualIfNullNamesAndNotes() throws Exception {
-        contact2 = new ContactImpl(50, null, null);
-        contact  = new ContactImpl(50, null, null);
-        assertEquals(contact.hashCode(), contact2.hashCode());
-        assertEquals(contact, contact2);
     }
 }
