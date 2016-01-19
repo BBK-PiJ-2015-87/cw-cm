@@ -1,7 +1,9 @@
 import interfaces.Contact;
 import org.junit.Before;
 import org.junit.Test;
+
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * Test class for ContactImpl.
@@ -33,12 +35,14 @@ public class ContactImplTest {
     }
 
     @Test
-    public void testGetNotes() throws Exception {
-
+    public void shouldReturnCorrectNotes() throws Exception {
+        assertEquals(notes, contact.getNotes());
     }
 
     @Test
-    public void testAddNotes() throws Exception {
-
+    public void shouldReturnEmptyStringNotesIfNotesAreNotProvided() throws Exception {
+        contact = new ContactImpl(id, name, null);
+        assertNotNull(contact.getNotes());
+        assertEquals("", contact.getNotes());
     }
 }
