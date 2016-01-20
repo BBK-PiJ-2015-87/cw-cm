@@ -8,6 +8,10 @@ import java.util.Set;
  * Created by Workstation on 19/01/16.
  */
 public class ContactManagerImpl implements ContactManager {
+    private List<FutureMeeting> futureMeetings;
+    private List<PastMeeting> pastMeetings;
+    private List<Meeting> meetings;
+    private Set<Contact> contacts;
     /**
      * Add a new meeting to be held in the future.
      *
