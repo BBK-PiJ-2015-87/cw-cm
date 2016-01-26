@@ -22,4 +22,14 @@ public class Utils {
         }
         return newId;
     }
+
+    /**
+     * Tests if meeting is being considered PastMeeting.
+     *
+     * @param meeting to test
+     * @return
+     */
+    public static boolean isPastMeeting(Meeting meeting) {
+        return System.currentTimeMillis() > meeting.getDate().getTimeInMillis();
+    }
 }

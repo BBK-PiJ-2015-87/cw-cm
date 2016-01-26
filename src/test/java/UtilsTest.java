@@ -2,6 +2,8 @@ import interfaces.Meeting;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -15,10 +17,13 @@ import static org.hamcrest.core.Is.is;
  */
 public class UtilsTest {
     public Map<Integer, Meeting> map;
+    Calendar date;
+    Meeting meeting;
 
     @Before
     public void setUp() {
         map = new HashMap<>();
+        date = new GregorianCalendar();
     }
 
     @Test
@@ -55,5 +60,21 @@ public class UtilsTest {
     public void shouldThrowExceptionWhenMapIsNull() throws Exception {
         map = null;
         Utils.generateNewID(map);
+    }
+
+    @Test
+    public void shouldReturnTrueIfMeetingIsInFuture() throws Exception {
+        date.setTimeInMillis(System.currentTimeMillis() + 60000);
+        meeting = new MeetingImpl(1, date, null);
+        boolean result = Utils.isPastMeeting(meeting);
+        assertThat(result, is(false));
+    }
+
+    @Test
+    public void shouldReturnFalseIfMeetingIsInFuture() throws Exception {
+        date.setTimeInMillis(System.currentTimeMillis() - 60000);
+        meeting = new MeetingImpl(1, date, null);
+        boolean result = Utils.isPastMeeting(meeting);
+        assertThat(result, is(true));
     }
 }
