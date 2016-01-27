@@ -1,17 +1,14 @@
 import interfaces.*;
 
-import java.util.Calendar;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Created by Workstation on 19/01/16.
  */
 public class ContactManagerImpl implements ContactManager {
-    private List<FutureMeeting> futureMeetings;
-    private List<PastMeeting> pastMeetings;
-    private List<Meeting> meetings;
-    private Set<Contact> contacts;
+    private Map<Integer, Meeting> meetings = new HashMap<>();
+    private Set<Contact> allContacts = new HashSet<>();
+
     /**
      * Add a new meeting to be held in the future.
      *
@@ -26,6 +23,8 @@ public class ContactManagerImpl implements ContactManager {
         return 0;
     }
 
+
+
     /**
      * Returns the PAST meeting with the requested ID, or null if it
      * there is none.
@@ -36,6 +35,10 @@ public class ContactManagerImpl implements ContactManager {
      */
     @Override
     public PastMeeting getPastMeeting(int id) {
+        Meeting meeting = meetings.get(id);
+        if (Utils.isPastMeeting(meeting)){
+            return (PastMeeting) meeting;
+        }
         return null;
     }
 
@@ -191,5 +194,13 @@ public class ContactManagerImpl implements ContactManager {
     @Override
     public void flush() {
 
+    }
+
+    public void setMeetings(Map<Integer, Meeting> meetings) {
+        this.meetings = meetings;
+    }
+
+    public void setAllContacts(Set<Contact> allContacts) {
+        this.allContacts = allContacts;
     }
 }
