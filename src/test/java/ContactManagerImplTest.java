@@ -1,43 +1,56 @@
 import interfaces.Contact;
-import interfaces.ContactManager;
-import interfaces.FutureMeeting;
+import interfaces.Meeting;
+import interfaces.PastMeeting;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.List;
+import java.util.*;
 
-import static org.junit.Assert.assertEquals;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
- * Created by Workstation on 19/01/16.
+ * Created by Vladimirs Ivanovs on 19/01/16.
  */
 public class ContactManagerImplTest {
-    Contact ct0, ct1, ct2, ct3, ct4;
-    List<FutureMeeting> futureMeetings;
-    ContactManager contactManager;
-    Calendar calendar;
+    ContactManagerImpl cm;
+    Map<Integer, Meeting> meetings;
+    Set<Contact> contacts;
+    Meeting mp, mp2, mf, mf2;
+    Calendar dp, dp2, df, df2;
+
 
     @Before
     public void setUp() throws Exception {
-        ct0  = new ContactImpl(0, "Name", "note");
-        ct1 = new ContactImpl(1, "Name", "note");
-        ct2 = new ContactImpl(2, "Name", "note");
-        ct3 = new ContactImpl(3, "Name", "note");
-        ct4 = new ContactImpl(4, "Name", "note");
-        List<Contact> contacts = Arrays.asList(ct0, ct1, ct2, ct3, ct4);
+        cm = new ContactManagerImpl();
+        meetings = new HashMap<>();
+        contacts = new HashSet<>();
+        cm.setMeetings(meetings);
+        cm.setAllContacts(contacts);
 
+        dp = new GregorianCalendar(2014, 1, 1);
+        dp2 = new GregorianCalendar(2015, 1, 1);
+        df = new GregorianCalendar(2020, 1, 1);
+        df2 = new GregorianCalendar(2022, 1, 1);
+        mp = new MeetingImpl(1, dp, null);
+        mp2 = new MeetingImpl(2, dp2, null);
+        mf = new MeetingImpl(3, df, null);
+        mf2 = new MeetingImpl(4, df2, null);
+        meetings.put(1, mp);
+        meetings.put(2, mp2);
+        meetings.put(3, mf);
+        meetings.put(4, mf2);
     }
 
     @Test
-    public void shouldAddFutureMeeting() throws Exception {
-        assertEquals(futureMeetings, contactManager.getFutureMeetingList(calendar));
+    public void shouldReturnPastMeetingByID() throws Exception {
+        int id = 1;
+        int id2 = 2;
+        PastMeeting result = cm.getPastMeeting(id);
+        PastMeeting result2 = cm.getPastMeeting(id2);
+        assertThat(result.getDate(), is(dp));
+        assertThat(result.getId(), is(1));
+        assertThat(result2.getDate(), is(dp2));
+        assertThat(result2.getId(), is(2));
     }
-
-    @Test
-    public void shouldReturnFutureMeetingList() throws Exception {
-        assertEquals(futureMeetings, contactManager.getFutureMeetingList(calendar));
-    }
-
 }
