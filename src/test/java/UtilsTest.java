@@ -2,10 +2,7 @@ import interfaces.Meeting;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.Calendar;
-import java.util.GregorianCalendar;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
@@ -16,7 +13,8 @@ import static org.hamcrest.core.Is.is;
  * Created by Vladimirs Ivanovs on 26/01/16.
  */
 public class UtilsTest {
-    public Map<Integer, Meeting> map;
+    Map<Integer, Meeting> map;
+    List<Meeting> list;
     Calendar date;
     Meeting meeting;
 
@@ -24,6 +22,14 @@ public class UtilsTest {
     public void setUp() {
         map = new HashMap<>();
         date = new GregorianCalendar();
+        list = new ArrayList<>();
+        list.addAll(Arrays.asList(
+                new MeetingImpl(0, null,null),
+                new MeetingImpl(1, null,null),
+                new MeetingImpl(2, null,null),
+                new MeetingImpl(3, null,null),
+                new MeetingImpl(4, null,null)
+        ));
     }
 
     @Test
@@ -50,16 +56,23 @@ public class UtilsTest {
         assertThat(newID, is(0));
     }
 
-    @Test
-    public void shouldReturnCorrectNewIDWhenMapIsEmpty() throws Exception {
-        int newID = Utils.generateNewID(map);
-        assertThat(newID, is(0));
-    }
-
     @Test(expected = NullPointerException.class)
     public void shouldThrowExceptionWhenMapIsNull() throws Exception {
         map = null;
         Utils.generateNewID(map);
+    }
+
+    @Test
+    public void shouldReturnNewIDWhenListIsNotEmpty() throws Exception {
+        int result = Utils.generateNewID(list);
+        assertThat(result, is(5));
+    }
+
+    @Test
+    public void shouldReturnNewIDWhenListIsEmpty() throws Exception {
+        list = new ArrayList<>();
+        int result = Utils.generateNewID(list);
+        assertThat(result, is(0));
     }
 
     @Test
