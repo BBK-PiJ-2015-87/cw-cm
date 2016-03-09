@@ -57,10 +57,6 @@ public class ContactManagerImpl implements ContactManager {
      */
     @Override
     public PastMeeting getPastMeeting(int id) {
-        Meeting meeting = meetings.get(id);
-        if (Utils.isPastMeeting(meeting)){
-            return new PastMeetingImpl(meeting.getId(), meeting.getDate(), meeting.getContacts(), null);
-        }
         return null;
     }
 
