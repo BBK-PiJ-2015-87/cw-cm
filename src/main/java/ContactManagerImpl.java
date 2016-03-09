@@ -6,8 +6,30 @@ import java.util.*;
  * Created by Workstation on 19/01/16.
  */
 public class ContactManagerImpl implements ContactManager {
-    private Map<Integer, Meeting> meetings = new HashMap<>();
-    private Set<Contact> allContacts = new HashSet<>();
+    private List<Meeting> meetings = new ArrayList<>();
+    private Set<Contact> contacts = new HashSet<>();
+
+    public ContactManagerImpl(List<Meeting> meetings, Set<Contact> contacts) {
+        this.meetings = meetings;
+        this.contacts = contacts;
+    }
+
+    public void setMeetings(List<Meeting> meetings) {
+        this.meetings = meetings;
+    }
+
+    public void setContacts(Set<Contact> contacts) {
+        this.contacts = contacts;
+    }
+
+    public List<Meeting> getMeetings() {
+
+        return meetings;
+    }
+
+    public Set<Contact> getContacts() {
+        return contacts;
+    }
 
     /**
      * Add a new meeting to be held in the future.
@@ -194,13 +216,5 @@ public class ContactManagerImpl implements ContactManager {
     @Override
     public void flush() {
 
-    }
-
-    public void setMeetings(Map<Integer, Meeting> meetings) {
-        this.meetings = meetings;
-    }
-
-    public void setAllContacts(Set<Contact> allContacts) {
-        this.allContacts = allContacts;
     }
 }
