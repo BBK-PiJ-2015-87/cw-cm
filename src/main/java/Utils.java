@@ -1,56 +1,25 @@
-import interfaces.Meeting;
-
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
- * Utility class which contains helper static methods.
+ * Utility class which contains helper static methods for generating unique numbers.
  *
  * Created by Vladimirs Ivanovs on 26/01/16.
  */
 public class Utils {
-
     /**
-     * Creates a unique int ID based on integer key values of a given map.
+     * Creates a unique number which doesn't exist in the provided set of integers.
+     * If provided set of numbers is empty, then new 0 is retrbed.
      *
-     * @param map to be inspected
-     * @return unique ID
+     * @param numbers set of existing numbers
+     * @return unique integer or 0 if set is empty
      */
-    public static int generateNewID(Map<Integer, Meeting> map) {
-        int newId = 0;
-        while (map.containsKey(newId)){
-            newId++;
+    public static int generateNewID(Set<Integer> numbers) {
+        int newNum = 0;
+        if (!numbers.isEmpty()){
+            while (numbers.contains(newNum)){
+                newNum++;
+            }
         }
-        return newId;
-    }
-
-    /**
-     * Creates a unique int ID based on IDs of meeting objects in the list.
-     *
-     * @param list to be inspected
-     * @return unique ID
-     */
-    public static int generateNewID(List<Meeting> list) {
-        Set<Integer> keys = list.stream()
-                .map(x -> x.getId())
-                .collect(Collectors.toSet());
-
-        int newId = 0;
-        while (keys.contains(newId)){
-            newId++;
-        }
-        return newId;
-    }
-
-    /**
-     * Tests if meeting is being considered PastMeeting.
-     *
-     * @param meeting to test
-     * @return
-     */
-    public static boolean isPastMeeting(Meeting meeting) {
-        return System.currentTimeMillis() > meeting.getDate().getTimeInMillis();
+        return newNum;
     }
 }
