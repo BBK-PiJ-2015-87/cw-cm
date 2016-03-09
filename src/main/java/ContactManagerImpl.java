@@ -27,7 +27,6 @@ public class ContactManagerImpl implements ContactManager {
     }
 
     public List<Meeting> getMeetings() {
-
         return meetings;
     }
 
@@ -64,7 +63,17 @@ public class ContactManagerImpl implements ContactManager {
      */
     @Override
     public PastMeeting getPastMeeting(int id) {
-        return null;
+        Optional<Meeting> matchedMeeting = meetings.stream()
+                .filter(meeting -> meeting.getId() == id)
+                .findFirst();
+
+        if (!matchedMeeting.isPresent()) {
+            return null;
+        } else {
+            Meeting meeting = matchedMeeting.get();
+            if (isFuture(meeting.getDate()))throw new IllegalArgumentException("Invalid ID for past meeting.");
+            return convertToPastMeeting(meeting);
+        }
     }
 
     /**
@@ -238,6 +247,14 @@ public class ContactManagerImpl implements ContactManager {
     private static int generateUniqueMeetingId() {
         Set<Integer> existingIDs = meetingIDs();
         return generateNewNumber(existingIDs);
+    }
+
+    private static PastMeeting convertToPastMeeting(Meeting meeting) {
+        if (meeting instanceof PastMeeting){
+            return (PastMeeting) meeting;
+        } else {
+            return new PastMeetingImpl(meeting.getId(), meeting.getDate(), meeting.getContacts(), null);
+        }
     }
 
 }
