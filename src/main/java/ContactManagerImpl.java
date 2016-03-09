@@ -1,13 +1,17 @@
 import interfaces.*;
 
 import java.util.*;
+import java.util.stream.Collectors;
+
+import static utils.Utils.generateNewNumber;
+import static utils.Utils.isFuture;
 
 /**
  * Created by Workstation on 19/01/16.
  */
 public class ContactManagerImpl implements ContactManager {
-    private List<Meeting> meetings = new ArrayList<>();
-    private Set<Contact> contacts = new HashSet<>();
+    private static List<Meeting> meetings = new ArrayList<>();
+    private static Set<Contact> contacts = new HashSet<>();
 
     public ContactManagerImpl(List<Meeting> meetings, Set<Contact> contacts) {
         this.meetings = meetings;
@@ -42,10 +46,13 @@ public class ContactManagerImpl implements ContactManager {
      */
     @Override
     public int addFutureMeeting(Set<Contact> contacts, Calendar date) {
-        return 0;
+        if (!isFuture(date)) throw new IllegalArgumentException("Date for a future meeting is not valid.");
+
+        int newID = generateUniqueMeetingId();
+        meetings.add(new MeetingImpl(newID, date, contacts));
+
+        return newID;
     }
-
-
 
     /**
      * Returns the PAST meeting with the requested ID, or null if it
@@ -213,4 +220,24 @@ public class ContactManagerImpl implements ContactManager {
     public void flush() {
 
     }
+
+    /**
+     *
+      * @return
+     */
+    private static Set<Integer> meetingIDs() {
+        return meetings.stream()
+                .map(meeting -> meeting.getId())
+                .collect(Collectors.toSet());
+    }
+
+    /**
+     *
+     * @return
+     */
+    private static int generateUniqueMeetingId() {
+        Set<Integer> existingIDs = meetingIDs();
+        return generateNewNumber(existingIDs);
+    }
+
 }
