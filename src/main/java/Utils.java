@@ -1,3 +1,4 @@
+import java.util.Calendar;
 import java.util.Set;
 
 /**
@@ -13,7 +14,7 @@ public class Utils {
      * @param numbers set of existing numbers
      * @return unique integer or 0 if set is empty
      */
-    public static int generateNewID(Set<Integer> numbers) {
+    public static int generateNewNumber(Set<Integer> numbers) {
         int newNum = 0;
         if (!numbers.isEmpty()){
             while (numbers.contains(newNum)){
@@ -21,5 +22,20 @@ public class Utils {
             }
         }
         return newNum;
+    }
+
+
+    /**
+     * Tests if provided date is in future, compared to now.
+     *
+     * @param date to be tested
+     * @return true if date is in the future, false otherwise
+     */
+    public static boolean isFuture(Calendar date) {
+        Calendar now = Calendar.getInstance();
+        if (date.compareTo(now) == 1) {
+            return true;
+        }
+        return false;
     }
 }
