@@ -63,16 +63,14 @@ public class ContactManagerImpl implements ContactManager {
      */
     @Override
     public PastMeeting getPastMeeting(int id) {
-        Optional<Meeting> matchedMeeting = meetings.stream()
-                .filter(meeting -> meeting.getId() == id)
-                .findFirst();
+        Optional<Meeting> matchedMeeting = findMeetingBy(id);
 
         if (!matchedMeeting.isPresent()) {
             return null;
         } else {
             Meeting meeting = matchedMeeting.get();
             if (isFuture(meeting.getDate()))throw new IllegalArgumentException("Invalid ID for past meeting.");
-            return convertToPastMeeting(meeting);
+            return toPastMeeting(meeting);
         }
     }
 
@@ -86,16 +84,14 @@ public class ContactManagerImpl implements ContactManager {
      */
     @Override
     public FutureMeeting getFutureMeeting(int id) {
-        Optional<Meeting> matchedMeeting = meetings.stream()
-                .filter(meeting -> meeting.getId() == id)
-                .findFirst();
+        Optional<Meeting> matchedMeeting = findMeetingBy(id);
 
         if (!matchedMeeting.isPresent()) {
             return null;
         } else {
             Meeting meeting = matchedMeeting.get();
             if (!isFuture(meeting.getDate()))throw new IllegalArgumentException("Invalid ID for future meeting.");
-            return convertToFutureMeeting(meeting);
+            return toFutureMeeting(meeting);
         }
     }
 
@@ -107,10 +103,19 @@ public class ContactManagerImpl implements ContactManager {
      */
     @Override
     public Meeting getMeeting(int id) {
-        Optional<Meeting> matchedMeeting = meetings.stream()
-                .filter(meeting -> meeting.getId() == id)
-                .findFirst();
+        Optional<Meeting> matchedMeeting = findMeetingBy(id);
         return (matchedMeeting.isPresent())? matchedMeeting.get() : null;
+    }
+
+    /**
+     *
+     * @param id
+     * @return
+     */
+    private Optional<Meeting> findMeetingBy(int id) {
+        return meetings.stream()
+                    .filter(meeting -> meeting.getId() == id)
+                    .findFirst();
     }
 
     /**
@@ -258,11 +263,15 @@ public class ContactManagerImpl implements ContactManager {
      * @return
      */
     private static int generateUniqueMeetingId() {
-        Set<Integer> existingIDs = meetingIDs();
-        return generateNewNumber(existingIDs);
+        return generateNewNumber(meetingIDs());
     }
 
-    private static PastMeeting convertToPastMeeting(Meeting meeting) {
+    /**
+     *
+     * @param meeting
+     * @return
+     */
+    private static PastMeeting toPastMeeting(Meeting meeting) {
         if (meeting instanceof PastMeeting){
             return (PastMeeting) meeting;
         } else {
@@ -270,7 +279,12 @@ public class ContactManagerImpl implements ContactManager {
         }
     }
 
-    private static FutureMeeting convertToFutureMeeting(Meeting meeting) {
+    /**
+     *
+     * @param meeting
+     * @return
+     */
+    private static FutureMeeting toFutureMeeting(Meeting meeting) {
         if (meeting instanceof FutureMeeting){
             return (FutureMeeting) meeting;
         } else {
