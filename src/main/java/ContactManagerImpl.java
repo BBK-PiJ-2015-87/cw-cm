@@ -86,7 +86,17 @@ public class ContactManagerImpl implements ContactManager {
      */
     @Override
     public FutureMeeting getFutureMeeting(int id) {
-        return null;
+        Optional<Meeting> matchedMeeting = meetings.stream()
+                .filter(meeting -> meeting.getId() == id)
+                .findFirst();
+
+        if (!matchedMeeting.isPresent()) {
+            return null;
+        } else {
+            Meeting meeting = matchedMeeting.get();
+            if (!isFuture(meeting.getDate()))throw new IllegalArgumentException("Invalid ID for future meeting.");
+            return convertToFutureMeeting(meeting);
+        }
     }
 
     /**
@@ -97,7 +107,10 @@ public class ContactManagerImpl implements ContactManager {
      */
     @Override
     public Meeting getMeeting(int id) {
-        return null;
+        Optional<Meeting> matchedMeeting = meetings.stream()
+                .filter(meeting -> meeting.getId() == id)
+                .findFirst();
+        return (matchedMeeting.isPresent())? matchedMeeting.get() : null;
     }
 
     /**
@@ -254,6 +267,14 @@ public class ContactManagerImpl implements ContactManager {
             return (PastMeeting) meeting;
         } else {
             return new PastMeetingImpl(meeting.getId(), meeting.getDate(), meeting.getContacts(), null);
+        }
+    }
+
+    private static FutureMeeting convertToFutureMeeting(Meeting meeting) {
+        if (meeting instanceof FutureMeeting){
+            return (FutureMeeting) meeting;
+        } else {
+            return new FutureMeetingImpl(meeting.getId(), meeting.getDate(), meeting.getContacts());
         }
     }
 

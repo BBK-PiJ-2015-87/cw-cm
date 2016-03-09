@@ -1,4 +1,5 @@
 import interfaces.Contact;
+import interfaces.FutureMeeting;
 import interfaces.Meeting;
 import interfaces.PastMeeting;
 import org.junit.Before;
@@ -18,6 +19,7 @@ import static org.junit.Assert.assertNull;
 public class ContactManagerImplTest {
     ContactManagerImpl cm;
     List<Meeting> pastMeetings;
+    List<Meeting> futureMeetings;
     Set<Contact> contacts;
     Set<Contact> participants;
 
@@ -25,6 +27,7 @@ public class ContactManagerImplTest {
     public void setUp() throws Exception {
         pastMeetings = new ArrayList<>();
         contacts = new HashSet<>();
+        futureMeetings = new ArrayList<>();
 
         participants = IntStream.rangeClosed(0, 5)
                 .boxed()
@@ -35,6 +38,15 @@ public class ContactManagerImplTest {
                 .boxed()
                 .map(id -> new MeetingImpl(id, new GregorianCalendar(), null))
                 .collect(Collectors.toList());
+
+        futureMeetings = IntStream.rangeClosed(0, 5)
+                .boxed()
+                .map(id -> new MeetingImpl(id, new GregorianCalendar(), null))
+                .collect(Collectors.toList());
+
+        //update date to future
+        futureMeetings.stream()
+                .forEach(meeting -> meeting.getDate().roll(Calendar.MONTH, true));
 
         cm = new ContactManagerImpl(pastMeetings, contacts);
     }
@@ -64,18 +76,54 @@ public class ContactManagerImplTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void shouldThrowExceptionWhenGivenIdOfFutureMeeting() {
-        //change dates to future meetings
-        cm.getMeetings().stream()
-                .forEach(meeting -> meeting.getDate()
-                        .roll(Calendar.MONTH, true));
+        cm.setMeetings(futureMeetings);
 
         PastMeeting pm1 = cm.getPastMeeting(1);
         assertThat(pm1.getId(), is(1));
     }
 
     @Test
-    public void shouldReturnNullIfNoMeetingWithGivenID() {
+    public void shouldReturnNullIfNoPastMeetingWithGivenID() {
         PastMeeting pm1 = cm.getPastMeeting(1000);
         assertNull(pm1);
+    }
+
+    @Test
+    public void shouldReturnFutureMeetingWithGivenID() {
+        cm.setMeetings(futureMeetings);
+
+        FutureMeeting fm1 = cm.getFutureMeeting(0);
+        FutureMeeting fm2 = cm.getFutureMeeting(5);
+        assertThat(fm1.getId(), is(0));
+        assertThat(fm2.getId(), is(5));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void shouldThrowExceptionWhenGivenIdOfPastMeeting() {
+        cm.setMeetings(pastMeetings);
+
+        FutureMeeting fm1 = cm.getFutureMeeting(1);
+        assertThat(fm1.getId(), is(1));
+    }
+
+    @Test
+    public void shouldReturnNullIfNoFutureMeetingWithGivenID() {
+        cm.setMeetings(futureMeetings);
+        FutureMeeting fm1 = cm.getFutureMeeting(1000);
+        assertNull(fm1);
+    }
+
+    @Test
+    public void shouldReturnMeetingWithGivenID() {
+        Meeting m1 = cm.getMeeting(2);
+        Meeting m2 = cm.getMeeting(5);
+        assertThat(m1.getId(), is(2));
+        assertThat(m2.getId(), is(5));
+    }
+
+    @Test
+    public void shouldReturnNullIfNoMeetingWithGivenID() {
+        Meeting m1 = cm.getMeeting(1000);
+        assertNull(m1);
     }
 }
