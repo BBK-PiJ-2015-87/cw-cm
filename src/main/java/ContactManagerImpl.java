@@ -1,7 +1,7 @@
 import interfaces.*;
 
+import javax.xml.bind.annotation.*;
 import java.util.*;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import static utils.Utils.generateNewNumber;
@@ -10,12 +10,22 @@ import static utils.Utils.isFuture;
 /**
  * Created by Workstation on 19/01/16.
  */
+
+@XmlSeeAlso({MeetingImpl.class, ContactImpl.class})
+@XmlRootElement(name = "contactManager")
+@XmlAccessorType(XmlAccessType.FIELD)
 public class ContactManagerImpl implements ContactManager {
-    private static List<Meeting> meetings = new ArrayList<>();
+
+    @XmlElementWrapper(name = "meetings")
+    @XmlAnyElement
+    private static List<Meeting> meetings;
 
     public ContactManagerImpl(List<Meeting> meetings) {
         this.meetings = meetings;
     }
+
+    //for XML marshalling purpose
+    private ContactManagerImpl(){}
 
     public List<Meeting> getMeetings() {
         return meetings;

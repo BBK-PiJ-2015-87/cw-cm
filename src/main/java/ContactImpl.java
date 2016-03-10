@@ -1,15 +1,28 @@
 import interfaces.Contact;
 
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlRootElement;
 import java.io.Serializable;
 import java.util.Objects;
 
 /**
  * Created by Workstation on 19/01/16.
  */
+
+@XmlRootElement(name = "contact")
+@XmlAccessorType(XmlAccessType.FIELD)
 public class ContactImpl implements Contact, Serializable {
+
+    @XmlAttribute
     private int id;
+
     private String name;
     private String notes;
+
+    //for XML marshalling purpose
+    private ContactImpl() {}
 
     public ContactImpl(int id, String name, String notes) {
         this.id = id;

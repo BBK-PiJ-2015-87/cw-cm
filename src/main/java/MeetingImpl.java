@@ -1,6 +1,7 @@
 import interfaces.Contact;
 import interfaces.Meeting;
 
+import javax.xml.bind.annotation.*;
 import java.util.Calendar;
 import java.util.Set;
 
@@ -9,10 +10,23 @@ import java.util.Set;
  *
  * Created by Vladimirs Ivanovs on 19/01/16.
  */
+
+//@XmlSeeAlso(ContactImpl.class)
+@XmlRootElement(name = "meeting")
+@XmlAccessorType(XmlAccessType.FIELD)
 public class MeetingImpl implements Meeting {
+
+    @XmlAttribute
     private int id;
+
     private Calendar date;
+
+    @XmlElementWrapper(name = "contacts")
+    @XmlAnyElement
     private Set<Contact> contacts;
+
+    //for XML marshalling purpose
+    private MeetingImpl(){}
 
     public MeetingImpl(int id, Calendar date, Set<Contact> contacts) {
         this.id = id;
@@ -73,7 +87,6 @@ public class MeetingImpl implements Meeting {
         result = 31 * result + (getContacts() != null ? getContacts().hashCode() : 0);
         return result;
     }
-
 
     @Override
     public String toString() {
