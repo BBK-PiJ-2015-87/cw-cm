@@ -112,6 +112,8 @@ public class ContactManagerImpl implements ContactManager {
         if (!getExistingContacts().contains(contact)) throw new IllegalArgumentException("Contact doesn't exist.");
         List<Meeting> futureMeetings = meetings.stream()
                 .filter(meeting -> meeting.getContacts().contains(contact) && isFuture(meeting.getDate()))
+                .map(meeting -> toFutureMeeting(meeting))
+                .sorted(new DateComparator())
                 .collect(Collectors.toList());
 
         return futureMeetings;

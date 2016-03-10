@@ -12,9 +12,7 @@ import java.util.stream.IntStream;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * Created by Vladimirs Ivanovs on 19/01/16.
@@ -48,22 +46,17 @@ public class ContactManagerImplTest {
 
         futureMeetings = IntStream.rangeClosed(1, 5)
                 .boxed()
-                .map(id -> new MeetingImpl(id, new GregorianCalendar(), participantsFuture))
+                .map(id -> new MeetingImpl(id, new GregorianCalendar(2020+id, 0, 10), participantsFuture))
                 .collect(Collectors.toList());
 
         pastMeetings = IntStream.rangeClosed(6, 10)
                 .boxed()
-                .map(id -> new MeetingImpl(id, new GregorianCalendar(), participantsPast))
+                .map(id -> new MeetingImpl(id, new GregorianCalendar(2000-id, 0, 10), participantsPast))
                 .collect(Collectors.toList());
 
 
         pastAndFutureMeetings.addAll(futureMeetings);
         pastAndFutureMeetings.addAll(pastMeetings);
-
-
-        //update date to future
-        futureMeetings.stream()
-                .forEach(meeting -> meeting.getDate().roll(Calendar.MONTH, true));
 
         cm = new ContactManagerImpl(pastAndFutureMeetings);
     }
@@ -210,36 +203,38 @@ public class ContactManagerImplTest {
     public void shouldThrowAnExceptionIfContactDoesNotExist() {
         Contact contact = new ContactImpl(-1, "", ""); //non existing contact
 
-
-        cm.getFutureMeetingList(contact);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void shouldThrowAnExceptionIfContactListIsEmpty() {
-        cm.getContacts().clear();
-        Contact contact = new ContactImpl(1, "name_1", "notes_1"); //existing contact
-
-        assertTrue(cm.getContacts().isEmpty()); //check if list is empty
         cm.getFutureMeetingList(contact);
     }
 
     @Test
-    public void shouldReturnEmptyListWhenProvidedContactIsNotPresentInAnyMeeting() {
-        Contact contact = new ContactImpl(100, "name_", "notes_1"); //existing contact
+    public void shouldReturnEmptyListWhenIfContactIsPresentOnlyInPastMeetings() {
+        Contact pastContact = new ContactImpl(10, "name_10", "notes_10"); //existing contact in Past Meetings
 
-        List<Meeting> resultList = cm.getFutureMeetingList(contact);
+        List<Meeting> resultList = cm.getFutureMeetingList(pastContact);
 
-        assertThat(resultList.get(0), instanceOf(FutureMeeting.class));
-        assertThat(resultList.size(), is(5));
+        assertTrue(cm.testGetExistingContacts().contains(pastContact)); //ensure that the contact exists
+        assertTrue(resultList.isEmpty());
     }
 
     @Test
     public void shouldReturnListOfMeetingsWithProvidedContact() {
-        Contact contact = new ContactImpl(1, "name_1", "notes_1"); //existing contact
+        Contact contact = new ContactImpl(1, "name_1", "notes_1"); //existing contact in FutureMeetings
 
         List<Meeting> resultList = cm.getFutureMeetingList(contact);
 
         assertThat(resultList.get(0), instanceOf(FutureMeeting.class));
         assertThat(resultList.size(), is(5));
+    }
+
+    @Test
+    public void shouldReturnSortedByDateListOfContacts() {
+        Contact contact = new ContactImpl(5, "name_5", "notes_5"); //existing contact in FutureMeetings
+
+        List<Meeting> expected = new ArrayList<>(futureMeetings);
+        Collections.reverse(expected);
+
+        List<Meeting> resultList = cm.getFutureMeetingList(contact);
+        assertEquals(expected, resultList);
+        assertTrue(resultList.containsAll(futureMeetings));
     }
 }
