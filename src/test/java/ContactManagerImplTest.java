@@ -89,6 +89,12 @@ public class ContactManagerImplTest {
     }
 
     @Test
+    public void shouldReturnNullIfNoMeetingsExistWhenPastMeetingProvided() {
+        PastMeeting pm1 = cm.getPastMeeting(1000);
+        assertNull(pm1);
+    }
+
+    @Test
     public void shouldReturnFutureMeetingWithGivenID() {
         cm.setMeetings(futureMeetings);
 
@@ -114,6 +120,15 @@ public class ContactManagerImplTest {
     }
 
     @Test
+    public void shouldReturnNullIfNoMeetingsExistWhenFutureMeetingProvided() {
+        futureMeetings.clear();
+        cm.setMeetings(futureMeetings);
+
+        FutureMeeting fm1 = cm.getFutureMeeting(2);
+        assertNull(fm1);
+    }
+
+    @Test
     public void shouldReturnMeetingWithGivenID() {
         Meeting m1 = cm.getMeeting(2);
         Meeting m2 = cm.getMeeting(5);
@@ -124,6 +139,15 @@ public class ContactManagerImplTest {
     @Test
     public void shouldReturnNullIfNoMeetingWithGivenID() {
         Meeting m1 = cm.getMeeting(1000);
+        assertNull(m1);
+    }
+
+    @Test
+    public void shouldReturnNullIfNoMeetingsExistWhenMeetingProvided() {
+        futureMeetings.clear();
+        cm.setMeetings(futureMeetings);
+
+        Meeting m1 = cm.getMeeting(2);
         assertNull(m1);
     }
 }
