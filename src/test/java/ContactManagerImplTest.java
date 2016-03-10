@@ -2,7 +2,6 @@ import interfaces.Contact;
 import interfaces.FutureMeeting;
 import interfaces.Meeting;
 import interfaces.PastMeeting;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -254,5 +253,14 @@ public class ContactManagerImplTest {
         assertThat(result.size(), is(4));
         assertEquals(sameDayMeetings, result);
         assertTrue(result.containsAll(sameDayMeetings));
+    }
+
+    @Test
+    public void shouldReturnEmptyListWhenMeetingsWithProvidedDateNotFound() {
+        Calendar date = new GregorianCalendar(2100, 1, 11); //set up date
+
+        List<Meeting> result = cm.getFutureMeetingList(date);
+
+        assertTrue(result.isEmpty());
     }
 }
