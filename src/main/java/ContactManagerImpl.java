@@ -1,6 +1,7 @@
 import interfaces.*;
 
 import java.util.*;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import static utils.Utils.generateNewNumber;
@@ -11,28 +12,15 @@ import static utils.Utils.isFuture;
  */
 public class ContactManagerImpl implements ContactManager {
     private static List<Meeting> meetings = new ArrayList<>();
-    private static Set<Contact> contacts = new HashSet<>();
 
-    public ContactManagerImpl(List<Meeting> meetings, Set<Contact> contacts) {
+    public ContactManagerImpl(List<Meeting> meetings) {
         this.meetings = meetings;
-        this.contacts = contacts;
-    }
-
-    public void setMeetings(List<Meeting> meetings) {
-        this.meetings = meetings;
-    }
-
-    public void setContacts(Set<Contact> contacts) {
-        this.contacts = contacts;
     }
 
     public List<Meeting> getMeetings() {
         return meetings;
     }
 
-    public Set<Contact> getContacts() {
-        return contacts;
-    }
 
     /**
      * Add a new meeting to be held in the future.
@@ -108,17 +96,6 @@ public class ContactManagerImpl implements ContactManager {
     }
 
     /**
-     *
-     * @param id
-     * @return
-     */
-    private Optional<Meeting> findMeetingBy(int id) {
-        return meetings.stream()
-                    .filter(meeting -> meeting.getId() == id)
-                    .findFirst();
-    }
-
-    /**
      * Returns the list of future meetings scheduled with this contact.
      * <p>
      * If there are none, the returned list will be empty. Otherwise,
@@ -132,7 +109,12 @@ public class ContactManagerImpl implements ContactManager {
      */
     @Override
     public List<Meeting> getFutureMeetingList(Contact contact) {
-        return null;
+        if (!getExistingContacts().contains(contact)) throw new IllegalArgumentException("Contact doesn't exist.");
+        List<Meeting> futureMeetings = meetings.stream()
+                .filter(meeting -> meeting.getContacts().contains(contact) && isFuture(meeting.getDate()))
+                .collect(Collectors.toList());
+
+        return futureMeetings;
     }
 
     /**
@@ -248,9 +230,25 @@ public class ContactManagerImpl implements ContactManager {
 
     }
 
+
+    //HELPER METHODS
+
     /**
+     * Returns Optional<Meeting> by given id.
      *
-      * @return
+     * @param id of a meeting to be found
+     * @return Optional of a meeting
+     */
+    private Optional<Meeting> findMeetingBy(int id) {
+        return meetings.stream()
+                .filter(meeting -> meeting.getId() == id)
+                .findFirst();
+    }
+
+    /**
+     * Returns all IDs of existing meetings.
+     *
+     * @return
      */
     private static Set<Integer> meetingIDs() {
         return meetings.stream()
@@ -259,17 +257,20 @@ public class ContactManagerImpl implements ContactManager {
     }
 
     /**
+     * Generate lowest possible in as a unique ID for the meeting. Checks all existing IDs in meeting
+     * list.
      *
-     * @return
+     * @return unique int ID
      */
     private static int generateUniqueMeetingId() {
         return generateNewNumber(meetingIDs());
     }
 
     /**
+     * Helper method to convert a type of a meeting to PastMeeting.
      *
-     * @param meeting
-     * @return
+     * @param meeting to be converted
+     * @return copy of a meeting with PastMeeting type
      */
     private static PastMeeting toPastMeeting(Meeting meeting) {
         if (meeting instanceof PastMeeting){
@@ -280,9 +281,10 @@ public class ContactManagerImpl implements ContactManager {
     }
 
     /**
+     * Helper method to convert a type of a meeting to a FutureMeeting.
      *
-     * @param meeting
-     * @return
+     * @param meeting to be converted
+     * @return copy of a meeting with FutureMeeting type
      */
     private static FutureMeeting toFutureMeeting(Meeting meeting) {
         if (meeting instanceof FutureMeeting){
@@ -290,6 +292,25 @@ public class ContactManagerImpl implements ContactManager {
         } else {
             return new FutureMeetingImpl(meeting.getId(), meeting.getDate(), meeting.getContacts());
         }
+    }
+
+    /**
+     * Helper method to return all existing contacts without duplicates.
+     *
+     * @return Set of existing contacts
+     */
+    private Set<Contact> getExistingContacts(){
+        Set<Contact>  contacts = meetings.stream().flatMap(meeting -> meeting.getContacts().stream()).collect(Collectors.toSet());
+        return contacts;
+    }
+
+    /**
+     * Wrapper public methods of getExistingContacts for testing purposes
+     *
+     * @return Set of existing contacts
+     */
+    public Set<Contact> testGetExistingContacts(){
+        return getExistingContacts();
     }
 
 }
