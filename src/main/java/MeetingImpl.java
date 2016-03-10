@@ -5,6 +5,8 @@ import java.util.Calendar;
 import java.util.Set;
 
 /**
+ * Concrete class representing meeting.
+ *
  * Created by Vladimirs Ivanovs on 19/01/16.
  */
 public class MeetingImpl implements Meeting {
@@ -50,5 +52,34 @@ public class MeetingImpl implements Meeting {
     @Override
     public Set<Contact> getContacts() {
         return contacts;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+
+        Meeting meeting = (Meeting) o;
+
+        if (getId() != meeting.getId()) return false;
+        if (getDate() != null ? !getDate().equals(meeting.getDate()) : meeting.getDate() != null) return false;
+        return getContacts() != null ? getContacts().equals(meeting.getContacts()) : meeting.getContacts() == null;
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = getId();
+        result = 31 * result + (getDate() != null ? getDate().hashCode() : 0);
+        result = 31 * result + (getContacts() != null ? getContacts().hashCode() : 0);
+        return result;
+    }
+
+
+    @Override
+    public String toString() {
+        return "MeetingImpl{" +
+                "date=" + date.getTime() +
+                ", id=" + id +
+                '}';
     }
 }
