@@ -2,6 +2,7 @@ import interfaces.Contact;
 import interfaces.FutureMeeting;
 import interfaces.Meeting;
 import interfaces.PastMeeting;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -236,5 +237,22 @@ public class ContactManagerImplTest {
         List<Meeting> resultList = cm.getFutureMeetingList(contact);
         assertEquals(expected, resultList);
         assertTrue(resultList.containsAll(futureMeetings));
+    }
+
+    @Test
+    public void shouldReturnMeetingsWithProvidedDate() {
+        Calendar date = new GregorianCalendar(2100, 1, 11); //set up date
+        List <Meeting> sameDayMeetings = IntStream.rangeClosed(20, 23) //set up meetings
+                .boxed()
+                .map(id -> new MeetingImpl(id, date, participantsFuture))
+                .collect(Collectors.toList());
+
+        cm.addMeetings(sameDayMeetings);
+
+        List<Meeting> result = cm.getFutureMeetingList(date);
+
+        assertThat(result.size(), is(4));
+        assertEquals(sameDayMeetings, result);
+        assertTrue(result.containsAll(sameDayMeetings));
     }
 }
