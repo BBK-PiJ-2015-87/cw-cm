@@ -2,6 +2,7 @@ import interfaces.*;
 
 import javax.xml.bind.annotation.*;
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static utils.Utils.generateNewNumber;
@@ -31,6 +32,9 @@ public class ContactManagerImpl implements ContactManager {
         return meetings;
     }
 
+    public void addMeetings(List<Meeting> anotherMeetings) {
+        meetings.addAll(anotherMeetings);
+    }
 
     /**
      * Add a new meeting to be held in the future.
@@ -142,7 +146,13 @@ public class ContactManagerImpl implements ContactManager {
      */
     @Override
     public List<Meeting> getFutureMeetingList(Calendar date) {
-        return null;
+        List<Meeting> futureMeetings = meetings.stream()
+                .filter(meeting -> meeting.getDate() == date)
+                .map(meeting -> toFutureMeeting(meeting))
+                .sorted(new DateComparator())
+                .collect(Collectors.toList());
+
+        return futureMeetings;
     }
 
     /**
@@ -158,6 +168,7 @@ public class ContactManagerImpl implements ContactManager {
      */
     @Override
     public List<PastMeeting> getPastMeetingList(Contact contact) {
+
         return null;
     }
 
