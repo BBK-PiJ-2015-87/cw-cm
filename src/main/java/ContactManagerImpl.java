@@ -6,6 +6,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static utils.ContactManagerFilters.filterAnyMeetingsWithID;
+import static utils.ContactManagerFilters.filterFutureMeetingsWithContact;
 import static utils.ContactManagerFilters.filterFutureMeetingsWithID;
 import static utils.Utils.generateNewNumber;
 import static utils.Utils.isFuture;
@@ -111,13 +112,7 @@ public class ContactManagerImpl implements ContactManager {
     @Override
     public List<Meeting> getFutureMeetingList(Contact contact) {
         if (!getAllContacts().contains(contact)) throw new IllegalArgumentException("Contact doesn't exist.");
-        List<Meeting> futureMeetings = meetings.stream()
-                .filter(meeting -> meeting.getContacts().contains(contact) && isFuture(meeting.getDate()))
-                .map(meeting -> toFutureMeeting(meeting))
-                .sorted(new DateComparator())
-                .collect(Collectors.toList());
-
-        return futureMeetings;
+        return filterFutureMeetingsWithContact(meetings, contact);
     }
 
     /**

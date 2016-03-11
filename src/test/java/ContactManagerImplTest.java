@@ -217,12 +217,11 @@ public class ContactManagerImplTest {
     }
 
     @Test
-    public void shouldReturnListOfMeetingsWithProvidedContact() {
+    public void shouldReturnListOfFutureMeetingsWithProvidedContact() {
         Contact contact = new ContactImpl(1, "name_1", "notes_1"); //existing contact in FutureMeetings
 
         List<Meeting> resultList = cm.getFutureMeetingList(contact);
 
-        assertThat(resultList.get(0), instanceOf(FutureMeeting.class));
         assertThat(resultList.size(), is(5));
     }
 
