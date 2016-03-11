@@ -93,8 +93,7 @@ public class ContactManagerImpl implements ContactManager {
      */
     @Override
     public Meeting getMeeting(int id) {
-        Optional<Meeting> matchedMeeting = findMeetingBy(id);
-        return (matchedMeeting.isPresent())? matchedMeeting.get() : null;
+        return returnMeetingOrNull(findMeetingBy(id));
     }
 
     /**
@@ -111,7 +110,7 @@ public class ContactManagerImpl implements ContactManager {
      */
     @Override
     public List<Meeting> getFutureMeetingList(Contact contact) {
-        if (!getAllExistingContacts().contains(contact)) throw new IllegalArgumentException("Contact doesn't exist.");
+        if (!getAllContacts().contains(contact)) throw new IllegalArgumentException("Contact doesn't exist.");
         List<Meeting> futureMeetings = meetings.stream()
                 .filter(meeting -> meeting.getContacts().contains(contact) && isFuture(meeting.getDate()))
                 .map(meeting -> toFutureMeeting(meeting))
@@ -264,6 +263,15 @@ public class ContactManagerImpl implements ContactManager {
      * @param matchedMeeting
      * @return
      */
+    private Meeting returnMeetingOrNull(Optional<Meeting> matchedMeeting) {
+       return (matchedMeeting.isPresent()) ? matchedMeeting.get() : null;
+    }
+
+    /**
+     *
+     * @param matchedMeeting
+     * @return
+     */
     private FutureMeeting returnFutureOrThrow(Optional<Meeting> matchedMeeting) {
         if (!matchedMeeting.isPresent()) {
             return null;
@@ -348,7 +356,7 @@ public class ContactManagerImpl implements ContactManager {
      *
      * @return Set of existing contacts
      */
-    private Set<Contact> getAllExistingContacts(){
+    private Set<Contact> getAllContacts(){
         Set<Contact>  contacts = meetings.stream()
                 .flatMap(meeting -> meeting.getContacts()
                         .stream())
@@ -357,12 +365,12 @@ public class ContactManagerImpl implements ContactManager {
     }
 
     /**
-     * Wrapper public methods of getAllExistingContacts for testing purposes
+     * Wrapper public methods of getAllContacts for testing purposes
      *
      * @return Set of existing contacts
      */
     public Set<Contact> testGetExistingContacts(){
-        return getAllExistingContacts();
+        return getAllContacts();
     }
 
 }
