@@ -81,7 +81,7 @@ public class ContactManagerImpl implements ContactManager {
      */
     @Override
     public FutureMeeting getFutureMeeting(int id) {
-        return returnFutureOrThrow(findFutureMeetingBy(id));
+        return returnFutureOrThrow(findMeetingBy(id));
     }
 
 
@@ -290,16 +290,6 @@ public class ContactManagerImpl implements ContactManager {
      */
     private Optional<Meeting> findMeetingBy(int id) {
         return filterAnyMeetingsWithID(meetings, id).stream().findFirst();
-    }
-
-    /**
-     * Returns Optional<Meeting> by given id.
-     *
-     * @param id of a meeting to be found
-     * @return Optional of a meeting
-     */
-    private Optional<Meeting> findFutureMeetingBy(int id) {
-        return filterFutureMeetingsWithID(meetings, id).stream().findFirst();
     }
 
     /**
