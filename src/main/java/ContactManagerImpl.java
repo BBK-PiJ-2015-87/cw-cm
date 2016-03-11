@@ -5,8 +5,8 @@ import javax.xml.bind.annotation.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static utils.MeetingFilters.getFutureMeetingByID;
-import static utils.MeetingPredicates.*;
+import static utils.ContactManagerFilters.filterFutureMeetingsWithID;
+import static utils.ContactManagerPredicates.*;
 import static utils.Utils.generateNewNumber;
 import static utils.Utils.isFuture;
 
@@ -88,7 +88,7 @@ public class ContactManagerImpl implements ContactManager {
      */
     @Override
     public FutureMeeting getFutureMeeting(int id) {
-        Optional<Meeting> matchedMeeting = getFutureMeetingByID(meetings, id);
+        Optional<Meeting> matchedMeeting = filterFutureMeetingsWithID(meetings, id);
 
         if (!matchedMeeting.isPresent()) {
             return null;
@@ -325,7 +325,10 @@ public class ContactManagerImpl implements ContactManager {
      * @return Set of existing contacts
      */
     private Set<Contact> getAllExistingContacts(){
-        Set<Contact>  contacts = meetings.stream().flatMap(meeting -> meeting.getContacts().stream()).collect(Collectors.toSet());
+        Set<Contact>  contacts = meetings.stream()
+                .flatMap(meeting -> meeting.getContacts()
+                        .stream())
+                .collect(Collectors.toSet());
         return contacts;
     }
 
