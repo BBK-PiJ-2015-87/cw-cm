@@ -38,6 +38,14 @@ public class ContactManagerFilters {
                 .collect(Collectors.<Contact>toSet());
     }
 
+    public static List<Meeting> filterAnyMeetingsWithID(List<Meeting> meetings, int id) {
+        return customMeetingFilter(meetings,  meetingHasID(id), dummyPredicate(), new DateComparator());
+    }
+
+    public static List<Meeting> filterAnyMeetingsWithContact(List<Meeting> meetings, Contact contact) {
+        return customMeetingFilter(meetings,  meetingHasContact(contact), dummyPredicate(), new DateComparator());
+    }
+
     public static List<Meeting> filterFutureMeetings(List<Meeting> meetings) {
         return customMeetingFilter(meetings, isFutureMeeting(), dummyPredicate(), new DateComparator());
     }

@@ -5,8 +5,8 @@ import javax.xml.bind.annotation.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static utils.ContactManagerFilters.filterAnyMeetingsWithID;
 import static utils.ContactManagerFilters.filterFutureMeetingsWithID;
-import static utils.ContactManagerPredicates.*;
 import static utils.Utils.generateNewNumber;
 import static utils.Utils.isFuture;
 
@@ -49,7 +49,7 @@ public class ContactManagerImpl implements ContactManager {
      */
     @Override
     public int addFutureMeeting(Set<Contact> contacts, Calendar date) {
-        if (!isFuture(date)) throw new IllegalArgumentException("Date for a future meeting is not valid.");
+        if (!isFuture(date)) throw new IllegalArgumentException("Date is in the past.");
 
         int newID = generateUniqueMeetingId();
         meetings.add(new MeetingImpl(newID, date, contacts));
@@ -67,16 +67,9 @@ public class ContactManagerImpl implements ContactManager {
      */
     @Override
     public PastMeeting getPastMeeting(int id) {
-        Optional<Meeting> matchedMeeting = findMeetingBy(id);
-
-        if (!matchedMeeting.isPresent()) {
-            return null;
-        } else {
-            Meeting meeting = matchedMeeting.get();
-            if (isFuture(meeting.getDate()))throw new IllegalArgumentException("Invalid ID for past meeting.");
-            return toPastMeeting(meeting);
-        }
+        return returnPastOrThrow(findMeetingBy(id));
     }
+
 
     /**
      * Returns the FUTURE meeting with the requested ID, or null if
@@ -88,16 +81,9 @@ public class ContactManagerImpl implements ContactManager {
      */
     @Override
     public FutureMeeting getFutureMeeting(int id) {
-        Optional<Meeting> matchedMeeting = filterFutureMeetingsWithID(meetings, id);
-
-        if (!matchedMeeting.isPresent()) {
-            return null;
-        } else {
-            Meeting meeting = matchedMeeting.get();
-            if (!isFuture(meeting.getDate()))throw new IllegalArgumentException("Invalid ID for future meeting.");
-            return toFutureMeeting(meeting);
-        }
+        return returnFutureOrThrow(findFutureMeetingBy(id));
     }
+
 
     /**
      * Returns the meeting with the requested ID, or null if it there is none.
@@ -259,15 +245,63 @@ public class ContactManagerImpl implements ContactManager {
     //HELPER METHODS
 
     /**
+     *
+     * @param matchedMeeting
+     * @return
+     */
+    private PastMeeting returnPastOrThrow(Optional<Meeting> matchedMeeting) {
+        if (!matchedMeeting.isPresent()) {
+            return null;
+        } else {
+            Meeting meeting = matchedMeeting.get();
+            if (isFuture(meeting.getDate()))throw new IllegalArgumentException("Invalid ID for past meeting.");
+            return toPastMeeting(meeting);
+        }
+    }
+
+    /**
+     *
+     * @param matchedMeeting
+     * @return
+     */
+    private FutureMeeting returnFutureOrThrow(Optional<Meeting> matchedMeeting) {
+        if (!matchedMeeting.isPresent()) {
+            return null;
+        } else {
+            Meeting meeting = matchedMeeting.get();
+            if (!isFuture(meeting.getDate()))throw new IllegalArgumentException("Invalid ID for future meeting.");
+            return toFutureMeeting(meeting);
+        }
+    }
+
+    /**
      * Returns Optional<Meeting> by given id.
      *
      * @param id of a meeting to be found
      * @return Optional of a meeting
      */
     private Optional<Meeting> findMeetingBy(int id) {
-        return meetings.stream()
-                .filter(meetingHasID(id))
-                .findFirst();
+        return filterAnyMeetingsWithID(meetings, id).stream().findFirst();
+    }
+
+    /**
+     * Returns Optional<Meeting> by given id.
+     *
+     * @param id of a meeting to be found
+     * @return Optional of a meeting
+     */
+    private Optional<Meeting> findFutureMeetingBy(int id) {
+        return filterFutureMeetingsWithID(meetings, id).stream().findFirst();
+    }
+
+    /**
+     * Generate lowest possible in as a unique ID for the meeting. Checks all existing IDs in meeting
+     * list.
+     *
+     * @return unique int ID
+     */
+    private static int generateUniqueMeetingId() {
+        return generateNewNumber(getAllMeetingIDs());
     }
 
     /**
@@ -279,16 +313,6 @@ public class ContactManagerImpl implements ContactManager {
         return meetings.stream()
                 .map(meeting -> meeting.getId())
                 .collect(Collectors.toSet());
-    }
-
-    /**
-     * Generate lowest possible in as a unique ID for the meeting. Checks all existing IDs in meeting
-     * list.
-     *
-     * @return unique int ID
-     */
-    private static int generateUniqueMeetingId() {
-        return generateNewNumber(getAllMeetingIDs());
     }
 
     /**
