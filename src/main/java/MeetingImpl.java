@@ -3,6 +3,7 @@ import interfaces.Meeting;
 
 import javax.xml.bind.annotation.*;
 import java.util.Calendar;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -29,6 +30,7 @@ public class MeetingImpl implements Meeting {
     private MeetingImpl(){}
 
     public MeetingImpl(int id, Calendar date, Set<Contact> contacts) {
+        if (date == null || contacts == null || contacts.isEmpty()) throw new IllegalArgumentException();
         this.id = id;
         this.date = date;
         this.contacts = contacts;
@@ -74,18 +76,13 @@ public class MeetingImpl implements Meeting {
 
         Meeting meeting = (Meeting) o;
 
-        if (getId() != meeting.getId()) return false;
-        if (getDate() != null ? !getDate().equals(meeting.getDate()) : meeting.getDate() != null) return false;
-        return getContacts() != null ? getContacts().equals(meeting.getContacts()) : meeting.getContacts() == null;
+        return id == meeting.getId();
 
     }
 
     @Override
     public int hashCode() {
-        int result = getId();
-        result = 31 * result + (getDate() != null ? getDate().hashCode() : 0);
-        result = 31 * result + (getContacts() != null ? getContacts().hashCode() : 0);
-        return result;
+        return Objects.hash(id);
     }
 
     @Override
