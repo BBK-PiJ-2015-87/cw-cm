@@ -26,43 +26,47 @@ public class ContactImplTest {
     }
 
     @Test
-    public void shouldReturnCorrectId() throws Exception {
+    public void shouldReturnCorrectId() {
         assertEquals(id, contact.getId());
     }
 
     @Test
-    public void shouldReturnCorrectName() throws Exception {
+    public void shouldReturnCorrectName() {
         assertEquals(name, contact.getName());
     }
 
     @Test
-    public void shouldReturnNullIfNoName() throws Exception {
+    public void shouldReturnNullIfNoName() {
         contact = new ContactImpl(id, null, notes);
+
         assertNull(contact.getName());
     }
 
     @Test
-    public void shouldReturnCorrectNotes() throws Exception {
+    public void shouldReturnCorrectNotes() {
         assertEquals(notes, contact.getNotes());
     }
 
     @Test
-    public void shouldReturnEmptyStringIfNotesAreNotProvided() throws Exception {
+    public void shouldReturnEmptyStringIfNotesAreNotProvided() {
         contact = new ContactImpl(id, name, null);
+
         assertNotNull(contact.getNotes());
         assertEquals("", contact.getNotes());
     }
 
     @Test
-    public void shouldTrimWhiteSpacesInProvidedNotes() throws Exception {
+    public void shouldTrimWhiteSpacesInProvidedNotes() {
         contact = new ContactImpl(id, name, "    ");
+
         assertEquals("", contact.getNotes());
     }
 
     @Test
-    public void shouldTrimWhiteSpacesWhenAddingNotes() throws Exception {
+    public void shouldTrimWhiteSpacesWhenAddingNotes() {
         contact = new ContactImpl(id, name, null);
         contact.addNotes("    ");
+
         assertEquals("", contact.getNotes());
     }
 
@@ -70,12 +74,14 @@ public class ContactImplTest {
     public void shouldTrimLeadingWhiteSpacesInNotes() throws Exception {
         contact = new ContactImpl(id, name, null);
         contact.addNotes("    Note.");
+
         assertEquals("Note.", contact.getNotes());
     }
 
     @Test
     public void shouldTrimTrailingWhiteSpacesInNotes() throws Exception {
         contact.addNotes("Note.   ");
+
         assertEquals(notes + " " + "Note.", contact.getNotes());
     }
 
@@ -83,6 +89,7 @@ public class ContactImplTest {
     public void shouldAddNoteAfterSpaceIfNotesExist() throws Exception {
         String newNote = "New note.";
         contact.addNotes(newNote);
+
         assertEquals(notes + " " + newNote, contact.getNotes());
     }
 
@@ -91,34 +98,38 @@ public class ContactImplTest {
         String newNote = "New note.";
         contact = new ContactImpl(id, name, null);
         contact.addNotes(newNote);
+
         assertEquals(newNote, contact.getNotes());
     }
 
     @Test
-    public void contactsShouldBeEqualWhenUsingSameObjectsToConstruct() throws Exception {
+    public void contactsShouldBeEqualWhenAllFieldsAreSame() throws Exception {
         assertEquals(contact.hashCode(), contact2.hashCode());
         assertEquals(contact, contact2);
     }
 
     @Test
-    public void contactsShouldBeEqualWhenUsingNewObjectsToConstruct() throws Exception {
+    public void contactsShouldBeEqualWhenIdEquals() throws Exception {
         contact2 = new ContactImpl(50, new String("Mark"), new String("Note."));
-        assertEquals(contact.hashCode(), contact2.hashCode());
+
+        assertTrue(contact.hashCode() == contact2.hashCode());
         assertEquals(contact, contact2);
     }
 
     @Test
-    public void contactsShouldBeEqualIfNullNames() throws Exception {
+    public void contactsShouldBeEqualIfNullNamesButSameIDs() throws Exception {
         contact2 = new ContactImpl(50, null, new String("NewNote."));
         contact  = new ContactImpl(50, null, new String("NewNote."));
+
         assertEquals(contact.hashCode(), contact2.hashCode());
         assertEquals(contact, contact2);
     }
 
     @Test
-    public void contactsShouldBeEqualIfNullNamesAndNotes() throws Exception {
+    public void contactsShouldBeEqualIfNullNamesAndNotesButSameIDs() throws Exception {
         contact2 = new ContactImpl(50, null, null);
         contact  = new ContactImpl(50, null, null);
+
         assertEquals(contact.hashCode(), contact2.hashCode());
         assertEquals(contact, contact2);
     }
@@ -126,13 +137,7 @@ public class ContactImplTest {
     @Test
     public void contactsShouldNotBeEqualIfDifferentID() throws Exception {
         contact2 = new ContactImpl(51, new String("Mark"), new String("Note."));
-        assertNotEquals(contact.hashCode(), contact2.hashCode());
-        assertNotEquals(contact, contact2);
-    }
 
-    @Test
-    public void contactsShouldNotBeEqualIfDifferentName() throws Exception {
-        contact2 = new ContactImpl(50, new String("Bob"), new String("Note."));
         assertNotEquals(contact.hashCode(), contact2.hashCode());
         assertNotEquals(contact, contact2);
     }
@@ -141,13 +146,6 @@ public class ContactImplTest {
     public void contactsShouldNotBeEqualIfDifferentIdAndNullNameAndNotes() throws Exception {
         contact = new ContactImpl(50, null, null);
         contact2 = new ContactImpl(51, null, null);
-        assertNotEquals(contact.hashCode(), contact2.hashCode());
-        assertNotEquals(contact, contact2);
-    }
-
-    @Test
-    public void contactsShouldNotBeEqualIfDifferentNotes() throws Exception {
-        contact2 = new ContactImpl(50, new String("Mark"), new String("NewNote."));
         assertNotEquals(contact.hashCode(), contact2.hashCode());
         assertNotEquals(contact, contact2);
     }

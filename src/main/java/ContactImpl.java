@@ -81,13 +81,20 @@ public class ContactImpl implements Contact, Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ContactImpl contact = (ContactImpl) o;
-        return id == contact.id &&
-                Objects.equals(name, contact.name) &&
-                Objects.equals(notes, contact.notes);
+        return id == contact.id;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, notes);
+        return Objects.hash(id);
+    }
+
+    @Override
+    public String toString() {
+        return "ContactImpl{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", notes='" + notes + '\'' +
+                '}';
     }
 }
