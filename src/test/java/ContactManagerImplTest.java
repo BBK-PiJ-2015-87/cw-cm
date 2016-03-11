@@ -9,7 +9,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.*;
@@ -272,6 +271,12 @@ public class ContactManagerImplTest {
         List<PastMeeting> result = cm.getPastMeetingList(contact);
 
         assertThat(result.size(), is(5));
+    }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void shouldThrowExceptionIfContactNotExists() {
+        Contact contact = new ContactImpl(11, "name_11", "notes_11");
+
+        cm.getPastMeetingList(contact);
     }
 }
