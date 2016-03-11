@@ -72,7 +72,7 @@ public class ContactManagerFilters {
     }
 
     public static List<Meeting> filterPastMeetingsByContact(List<Meeting> meetings, Contact contact) {
-        return customMeetingFilter(meetings, isFutureMeeting(), meetingHasContact(contact), new DateComparator());
+        return customMeetingFilter(meetings, isPastMeeting(), meetingHasContact(contact), new DateComparator());
     }
 
     public static Set<Contact> filterContactsWithName(Set<Contact> contacts, String name) {

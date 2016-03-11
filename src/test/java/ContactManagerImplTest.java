@@ -9,6 +9,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.*;
@@ -266,11 +267,12 @@ public class ContactManagerImplTest {
 
     @Test
     public void shouldReturnPastMeetingListWhenMeetingsWithProvidedDateNotFound() {
-        Contact contact = new ContactImpl(5, "name_5", "notes_5");
+        Contact contact = new ContactImpl(6, "name_6", "notes_6");
 
         List<PastMeeting> result = cm.getPastMeetingList(contact);
 
         assertThat(result.size(), is(5));
+        assertThat(result.get(0), instanceOf(PastMeeting.class));
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -278,5 +280,22 @@ public class ContactManagerImplTest {
         Contact contact = new ContactImpl(11, "name_11", "notes_11");
 
         cm.getPastMeetingList(contact);
+    }
+
+    @Test
+    public void shouldReturnEmptyListIfNoPastMeetings() {
+        Contact contact = new ContactImpl(5, "name_5", "notes_5");
+        cm.setMeetings(futureMeetings);
+        List<PastMeeting> result = cm.getPastMeetingList(contact);
+
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    public void shouldReturnEmptyListIfContactExistsButNoInPastMeetings() {
+        Contact contact = new ContactImpl(5, "name_5", "notes_5");
+        List<PastMeeting> result = cm.getPastMeetingList(contact);
+
+        assertTrue(result.isEmpty());
     }
 }

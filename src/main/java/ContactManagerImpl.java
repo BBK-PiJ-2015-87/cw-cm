@@ -1,8 +1,10 @@
 import interfaces.*;
-import utils.DateComparator;
 
 import javax.xml.bind.annotation.*;
-import java.util.*;
+import java.util.Calendar;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static utils.ContactManagerFilters.*;
@@ -29,6 +31,9 @@ public class ContactManagerImpl implements ContactManager {
     //for XML marshalling purpose
     private ContactManagerImpl(){}
 
+    public static void setMeetings(List<Meeting> meetings) {
+        ContactManagerImpl.meetings = meetings;
+    }
     public List<Meeting> getMeetings() {
         return meetings;
     }
@@ -140,6 +145,7 @@ public class ContactManagerImpl implements ContactManager {
      */
     @Override
     public List<PastMeeting> getPastMeetingList(Contact contact) {
+        if (!getAllContacts().contains(contact)) throw new IllegalArgumentException("Contact doesn't exist.");
         List<PastMeeting> result = filterPastMeetingsByContact(meetings, contact).stream()
                 .map(ContactManagerImpl::toPastMeeting)
                 .collect(Collectors.toList());
