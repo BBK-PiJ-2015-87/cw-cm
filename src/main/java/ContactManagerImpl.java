@@ -5,9 +5,7 @@ import javax.xml.bind.annotation.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static utils.ContactManagerFilters.filterAnyMeetingsWithID;
-import static utils.ContactManagerFilters.filterFutureMeetingsWithContact;
-import static utils.ContactManagerFilters.filterFutureMeetingsWithID;
+import static utils.ContactManagerFilters.*;
 import static utils.Utils.generateNewNumber;
 import static utils.Utils.isFuture;
 
@@ -128,13 +126,7 @@ public class ContactManagerImpl implements ContactManager {
      */
     @Override
     public List<Meeting> getFutureMeetingList(Calendar date) {
-        List<Meeting> futureMeetings = meetings.stream()
-                .filter(meeting -> meeting.getDate() == date)
-                .map(meeting -> toFutureMeeting(meeting))
-                .sorted(new DateComparator())
-                .collect(Collectors.toList());
-
-        return futureMeetings;
+        return filterFutureMeetingsOnDate(meetings, date);
     }
 
     /**

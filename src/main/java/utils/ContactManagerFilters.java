@@ -3,6 +3,7 @@ package utils;
 import interfaces.Contact;
 import interfaces.Meeting;
 
+import java.util.Calendar;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
@@ -56,6 +57,10 @@ public class ContactManagerFilters {
 
     public static List<Meeting> filterFutureMeetingsWithContact(List<Meeting> meetings, Contact contact) {
         return customMeetingFilter(meetings, isFutureMeeting(), meetingHasContact(contact), new DateComparator());
+    }
+
+    public static List<Meeting> filterFutureMeetingsOnDate(List<Meeting> meetings, Calendar date) {
+        return customMeetingFilter(meetings, isFutureMeeting(), meetingOn(date), new DateComparator());
     }
 
     public static List<Meeting> filterPastMeetings(List<Meeting> meetings) {
