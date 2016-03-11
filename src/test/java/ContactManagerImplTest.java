@@ -262,4 +262,16 @@ public class ContactManagerImplTest {
 
         assertTrue(result.isEmpty());
     }
+
+    //getPastMeeting list
+
+    @Test
+    public void shouldReturnPastMeetingListWhenMeetingsWithProvidedDateNotFound() {
+        Contact contact = new ContactImpl(5, "name_5", "notes_5");
+
+        List<PastMeeting> result = cm.getPastMeetingList(contact);
+
+        assertThat(result.size(), is(5));
+
+    }
 }

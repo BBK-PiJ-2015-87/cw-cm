@@ -69,7 +69,6 @@ public class ContactManagerImpl implements ContactManager {
         return returnPastOrThrow(findMeetingBy(id));
     }
 
-
     /**
      * Returns the FUTURE meeting with the requested ID, or null if
      * there is none.
@@ -82,7 +81,6 @@ public class ContactManagerImpl implements ContactManager {
     public FutureMeeting getFutureMeeting(int id) {
         return returnFutureOrThrow(findMeetingBy(id));
     }
-
 
     /**
      * Returns the meeting with the requested ID, or null if it there is none.
@@ -142,8 +140,11 @@ public class ContactManagerImpl implements ContactManager {
      */
     @Override
     public List<PastMeeting> getPastMeetingList(Contact contact) {
+        List<PastMeeting> result = filterPastMeetingsByContact(meetings, contact).stream()
+                .map(ContactManagerImpl::toPastMeeting)
+                .collect(Collectors.toList());
 
-        return null;
+        return result;
     }
 
     /**
