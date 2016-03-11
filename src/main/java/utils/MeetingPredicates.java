@@ -13,6 +13,11 @@ import java.util.stream.Collectors;
  * Created by vladimirsivanovs on 11/03/2016.
  */
 public class MeetingPredicates {
+
+    public static Predicate<Meeting> dummyPredicate() {
+        return meeting -> true;
+    }
+
     public static Predicate<Meeting> isFutureMeeting() {
         Calendar now = new GregorianCalendar();
         return meeting -> meeting.getDate().after(now);
@@ -23,32 +28,16 @@ public class MeetingPredicates {
         return meeting -> meeting.getDate().before(now);
     }
 
-    public static Predicate<Meeting> isMeetingDate(Calendar date) {
+    public static Predicate<Meeting> meetingOn(Calendar date) {
         return meeting -> meeting.getDate().equals(date);
     }
 
-    public static Predicate<Meeting> dummyPredicate() {
-        return meeting -> true;
-    }
-
-    public static Predicate<Meeting> isMeetingID(int id) {
+    public static Predicate<Meeting> meetingHasID(int id) {
         return meeting -> meeting.getId() == id;
     }
 
-    public static List<Meeting> filterMeetings(List<Meeting> meetings, Predicate<Meeting> predicate, Predicate<Meeting> predicate2, Comparator<Meeting> comparator) {
-        return meetings.stream()
-                .filter(predicate)
-                .filter(predicate2)
-                .sorted(comparator)
-                .collect(Collectors.<Meeting>toList());
+    public static Predicate<Meeting> meetingHasContact(int id) {
+        return meeting -> meeting.getId() == id;
     }
 
-    public static List<Meeting> getAllFutureMeetings(List<Meeting> meetings) {
-        return filterMeetings(meetings, isFutureMeeting(), dummyPredicate(), new DateComparator());
-    }
-
-    public static Optional<Meeting> getFutureMeetingByID(List<Meeting> meetings, int id) {
-        return filterMeetings(meetings, isFutureMeeting(), isMeetingID(id), new DateComparator()).stream()
-                .findFirst();
-    }
 }

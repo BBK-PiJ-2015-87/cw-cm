@@ -5,6 +5,7 @@ import javax.xml.bind.annotation.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static utils.MeetingFilters.getFutureMeetingByID;
 import static utils.MeetingPredicates.*;
 import static utils.Utils.generateNewNumber;
 import static utils.Utils.isFuture;
@@ -265,7 +266,7 @@ public class ContactManagerImpl implements ContactManager {
      */
     private Optional<Meeting> findMeetingBy(int id) {
         return meetings.stream()
-                .filter(isMeetingID(id))
+                .filter(meetingHasID(id))
                 .findFirst();
     }
 
