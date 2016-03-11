@@ -1,3 +1,5 @@
+package utils;
+
 import interfaces.Meeting;
 
 import java.util.Comparator;

@@ -1,10 +1,11 @@
 import interfaces.*;
+import utils.DateComparator;
 
 import javax.xml.bind.annotation.*;
 import java.util.*;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import static utils.MeetingPredicates.*;
 import static utils.Utils.generateNewNumber;
 import static utils.Utils.isFuture;
 
@@ -86,7 +87,7 @@ public class ContactManagerImpl implements ContactManager {
      */
     @Override
     public FutureMeeting getFutureMeeting(int id) {
-        Optional<Meeting> matchedMeeting = findMeetingBy(id);
+        Optional<Meeting> matchedMeeting = getFutureMeetingByID(meetings, id);
 
         if (!matchedMeeting.isPresent()) {
             return null;
@@ -123,7 +124,7 @@ public class ContactManagerImpl implements ContactManager {
      */
     @Override
     public List<Meeting> getFutureMeetingList(Contact contact) {
-        if (!getExistingContacts().contains(contact)) throw new IllegalArgumentException("Contact doesn't exist.");
+        if (!getAllExistingContacts().contains(contact)) throw new IllegalArgumentException("Contact doesn't exist.");
         List<Meeting> futureMeetings = meetings.stream()
                 .filter(meeting -> meeting.getContacts().contains(contact) && isFuture(meeting.getDate()))
                 .map(meeting -> toFutureMeeting(meeting))
@@ -264,7 +265,7 @@ public class ContactManagerImpl implements ContactManager {
      */
     private Optional<Meeting> findMeetingBy(int id) {
         return meetings.stream()
-                .filter(meeting -> meeting.getId() == id)
+                .filter(isMeetingID(id))
                 .findFirst();
     }
 
@@ -273,7 +274,7 @@ public class ContactManagerImpl implements ContactManager {
      *
      * @return
      */
-    private static Set<Integer> meetingIDs() {
+    private static Set<Integer> getAllMeetingIDs() {
         return meetings.stream()
                 .map(meeting -> meeting.getId())
                 .collect(Collectors.toSet());
@@ -286,7 +287,7 @@ public class ContactManagerImpl implements ContactManager {
      * @return unique int ID
      */
     private static int generateUniqueMeetingId() {
-        return generateNewNumber(meetingIDs());
+        return generateNewNumber(getAllMeetingIDs());
     }
 
     /**
@@ -322,18 +323,18 @@ public class ContactManagerImpl implements ContactManager {
      *
      * @return Set of existing contacts
      */
-    private Set<Contact> getExistingContacts(){
+    private Set<Contact> getAllExistingContacts(){
         Set<Contact>  contacts = meetings.stream().flatMap(meeting -> meeting.getContacts().stream()).collect(Collectors.toSet());
         return contacts;
     }
 
     /**
-     * Wrapper public methods of getExistingContacts for testing purposes
+     * Wrapper public methods of getAllExistingContacts for testing purposes
      *
      * @return Set of existing contacts
      */
     public Set<Contact> testGetExistingContacts(){
-        return getExistingContacts();
+        return getAllExistingContacts();
     }
 
 }
