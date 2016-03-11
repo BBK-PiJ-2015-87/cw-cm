@@ -87,7 +87,7 @@ public class ContactManagerImplTest {
         assertThat(contacts.size(), is(11));
     }
 
-    //Tests for addFutureMeeting by providing set of contacts and date
+    //addFutureMeeting
 
     @Test
     public void shouldAddFutureMeetingIfFutureDateProvided(){
@@ -109,7 +109,7 @@ public class ContactManagerImplTest {
         cm.addFutureMeeting(participantsFuture, yesterday);
     }
 
-    //Tests for getPastMeeting by id
+    //getPastMeeting
 
     @Test
     public void shouldReturnPastMeetingWithGivenID() {
@@ -137,7 +137,7 @@ public class ContactManagerImplTest {
         assertNull(pm1);
     }
 
-    //Tests for getFutureMeeting by id
+    //getFutureMeeting
 
     @Test
     public void shouldReturnFutureMeetingWithGivenID() {
@@ -168,7 +168,7 @@ public class ContactManagerImplTest {
         assertNull(fm1);
     }
 
-    //Tests for getMeeting by id
+    //getMeeting
 
     @Test
     public void shouldReturnMeetingWithGivenID() {
@@ -197,7 +197,7 @@ public class ContactManagerImplTest {
         assertNull(m1);
     }
 
-    //Tests of getFutureMeetingList by providing a contact
+    //getFutureMeetingList
 
     @Test(expected = IllegalArgumentException.class)
     public void shouldThrowAnExceptionIfContactDoesNotExist() {
@@ -263,7 +263,7 @@ public class ContactManagerImplTest {
         assertTrue(result.isEmpty());
     }
 
-    //getPastMeeting list
+    //getPastMeetingList
 
     @Test
     public void shouldReturnPastMeetingListWhenMeetingsWithProvidedDateNotFound() {
@@ -297,5 +297,21 @@ public class ContactManagerImplTest {
         List<PastMeeting> result = cm.getPastMeetingList(contact);
 
         assertTrue(result.isEmpty());
+    }
+
+    // addNewPastMeeting
+    @Test(expected = NullPointerException.class)
+    public void shouldThrowAnExceptionIfContactAreNotProvided() {
+        cm.addNewPastMeeting(null, new GregorianCalendar(), "notes");
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void shouldThrowAnExceptionIfDateIsNotProvided() {
+        cm.addNewPastMeeting(participantsPast, null, "notes");
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void shouldThrowAnExceptionIfNotesAreNotProvided() {
+        cm.addNewPastMeeting(participantsPast, new GregorianCalendar(), null);
     }
 }

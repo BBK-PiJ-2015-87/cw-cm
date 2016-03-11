@@ -165,6 +165,7 @@ public class ContactManagerImpl implements ContactManager {
      */
     @Override
     public void addNewPastMeeting(Set<Contact> contacts, Calendar date, String text) {
+        if(contacts == null || date == null || text == null) throw new NullPointerException();
 
     }
 
