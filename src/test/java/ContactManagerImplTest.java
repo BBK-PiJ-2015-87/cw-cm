@@ -9,6 +9,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import static junit.framework.TestCase.assertTrue;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
@@ -19,11 +20,18 @@ import static org.junit.Assert.*;
  */
 public class ContactManagerImplTest {
     ContactManagerImpl cm;
+
+    Set<Contact> contacts;
+    Set<Contact> participantsPast;
+    Set<Contact> participantsFuture;
+    Set<Contact> participantsUnknown;
+
+    List<Meeting> meetings;
     List<Meeting> pastMeetings;
     List<Meeting> futureMeetings;
-    List<Meeting> pastAndFutureMeetings;
-    Set<Contact> participantsFuture;
-    Set<Contact> participantsPast;
+
+
+
 
     /**
      * Setup mock contact manager.
@@ -32,7 +40,8 @@ public class ContactManagerImplTest {
      */
     @Before
     public void setUp() throws Exception {
-        pastAndFutureMeetings = new ArrayList<>();
+        meetings = new ArrayList<>();
+        contacts = new HashSet<>();
 
         participantsFuture = IntStream.rangeClosed(1, 5)
                 .boxed()
@@ -40,6 +49,11 @@ public class ContactManagerImplTest {
                 .collect(Collectors.toSet());
 
         participantsPast = IntStream.rangeClosed(6, 10)
+                .boxed()
+                .map(id -> new ContactImpl(id, "name_"+id, "notes_"+id))
+                .collect(Collectors.toSet());
+
+        participantsUnknown = IntStream.rangeClosed(101, 105)
                 .boxed()
                 .map(id -> new ContactImpl(id, "name_"+id, "notes_"+id))
                 .collect(Collectors.toSet());
@@ -54,90 +68,93 @@ public class ContactManagerImplTest {
                 .map(id -> new MeetingImpl(id, new GregorianCalendar(2000-id, 0, 10), participantsPast))
                 .collect(Collectors.toList());
 
+        meetings.addAll(pastMeetings);
+        meetings.addAll(futureMeetings);
 
-        pastAndFutureMeetings.addAll(futureMeetings);
-        pastAndFutureMeetings.addAll(pastMeetings);
+        contacts.addAll(participantsPast);
+        contacts.addAll(participantsFuture);
 
-        cm = new ContactManagerImpl(pastAndFutureMeetings);
+        cm = new ContactManagerImpl(contacts, meetings);
     }
 
-    //Tests for helper methods
-
-    @Test
-    public void shouldReturnAllExistingContacts(){
-        Set<Contact> contacts = cm.testGetExistingContacts();
-
-        assertThat(contacts.size(), is(10));
-        assertTrue(contacts.containsAll(participantsFuture));
-        assertTrue(contacts.containsAll(participantsPast));
-    }
-
-    @Test
-    public void shouldReturnAllExistingContactsWithNoDuplicates(){
-        Contact duplicated = new ContactImpl(11, "name_11", "notes_11");
-        participantsFuture.add(duplicated);
-        participantsPast.add(duplicated);
-
-        Set<Contact> contacts = cm.testGetExistingContacts();
-
-        assertTrue(contacts.containsAll(participantsFuture));
-        assertTrue(contacts.containsAll(participantsPast));
-        assertThat(participantsFuture.size(), is(6));
-        assertThat(participantsPast.size(), is(6));
-        assertThat(contacts.size(), is(11));
-    }
 
     //addFutureMeeting
 
+    @Test(expected = IllegalArgumentException.class)
+    public void shouldThrowExceptionIfPastDateProvided() throws Exception {
+        Calendar past = new GregorianCalendar(1000, 0, 10);
+
+        cm.addFutureMeeting(new HashSet<>(participantsFuture), past);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void shouldThrowExceptionIfContactUnknown() throws Exception {
+        Calendar future = new GregorianCalendar(3000, 0, 10);
+        cm.addFutureMeeting(participantsUnknown, future);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void shouldThrowExceptionIfContactsNotProvided() throws Exception {
+        Calendar future = new GregorianCalendar(3000, 0, 10);
+        cm.addFutureMeeting(null, future);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void shouldThrowExceptionIfDateNotProvided() throws Exception {
+        cm.addFutureMeeting(new HashSet<>(participantsFuture), null);
+    }
+
     @Test
-    public void shouldAddFutureMeetingIfFutureDateProvided(){
-        Calendar tomorrow = Calendar.getInstance();
-        tomorrow.roll(Calendar.DATE, true);
+    public void shouldAddFutureMeetingToList(){
+        Calendar future = new GregorianCalendar(3000, 0, 10);
 
-        int meetingId = cm.addFutureMeeting(participantsFuture, tomorrow);
-        int meetingId2 = cm.addFutureMeeting(participantsFuture, tomorrow);
+        int meetingId = cm.addFutureMeeting(participantsFuture, future);
+        int meetingId2 = cm.addFutureMeeting(participantsFuture, future);
 
+        assertThat(cm.getMeetings().size(), is(12));
         assertThat(meetingId, is(0));
         assertThat(meetingId2, is(11));
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void shouldThrowExceptionIfPastDateProvided() throws Exception {
-        Calendar yesterday = Calendar.getInstance();
-        yesterday.roll(Calendar.MONTH, false);
-
-        cm.addFutureMeeting(participantsFuture, yesterday);
-    }
-
     //getPastMeeting
 
-    @Test
-    public void shouldReturnPastMeetingWithGivenID() {
-        PastMeeting pm1 = cm.getPastMeeting(6);
-        PastMeeting pm2 = cm.getPastMeeting(10);
-
-        assertThat(pm1.getId(), is(6));
-        assertThat(pm2.getId(), is(10));
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void shouldThrowExceptionWhenGivenIdOfFutureMeeting() {
+    @Test(expected = IllegalStateException.class)
+    public void shouldThrowExceptionWhenIdOfFutureMeetingProvided() {
         cm.getPastMeeting(1);
     }
 
     @Test
-    public void shouldReturnNullIfNoPastMeetingWithGivenID() {
-        PastMeeting pm1 = cm.getPastMeeting(1000);
-        assertNull(pm1);
+    public void shouldReturnPastMeetingWithCorrectId() {
+        PastMeeting pm1 = cm.getPastMeeting(6);
+        PastMeeting pm2 = cm.getPastMeeting(10);
+
+        assertThat(pm1.getId(), is(6));
+        assertThat(pm1, instanceOf(PastMeeting.class));
+        assertThat(pm2.getId(), is(10));
+        assertThat(pm2, instanceOf(PastMeeting.class));
     }
 
     @Test
-    public void shouldReturnNullIfNoMeetingsExistWhenPastMeetingProvided() {
+    public void shouldReturnNullIfMeetingWithIdNotPresent() {
+        assertNull(cm.getPastMeeting(1000));
+    }
+
+    @Test
+    public void shouldReturnNullIfNoMeetingsExist() {
+        meetings.clear();
+        assertTrue(meetings.isEmpty());
+
         PastMeeting pm1 = cm.getPastMeeting(1000);
         assertNull(pm1);
     }
 
+
     //getFutureMeeting
+
+    @Test(expected = IllegalArgumentException.class)
+    public void shouldThrowExceptionWhenIdOfPastMeetingProvided() {
+        cm.getFutureMeeting(10);
+    }
 
     @Test
     public void shouldReturnFutureMeetingWithGivenID() {
@@ -145,12 +162,9 @@ public class ContactManagerImplTest {
         FutureMeeting fm2 = cm.getFutureMeeting(5);
 
         assertThat(fm1.getId(), is(1));
+        assertThat(fm1, instanceOf(FutureMeeting.class));
         assertThat(fm2.getId(), is(5));
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void shouldThrowExceptionWhenIdOfPastMeetingProvided() {
-        cm.getFutureMeeting(10);
+        assertThat(fm2, instanceOf(FutureMeeting.class));
     }
 
     @Test
@@ -171,7 +185,7 @@ public class ContactManagerImplTest {
     //getMeeting
 
     @Test
-    public void shouldReturnMeetingWithGivenID() {
+    public void shouldReturnPastOrFutureMeetingsWithGivenID() {
         Meeting m1 = cm.getMeeting(1);
         Meeting m2 = cm.getMeeting(10);
 
@@ -180,61 +194,71 @@ public class ContactManagerImplTest {
     }
 
     @Test
-    public void shouldReturnNullIfNoMeetingWithGivenID() {
-        Meeting m1 = cm.getMeeting(10000);
+    public void shouldReturnNullIfMeetingNotFound() {
+        Meeting m1 = cm.getMeeting(100);
 
         assertFalse(cm.getMeetings().isEmpty());
         assertNull(m1);
     }
 
     @Test
-    public void shouldReturnNullIfMeetingListIsEmptyAndIdProvided() {
+    public void shouldReturnNullWhenProvidedIdAndMeetingListIsEmpty() {
         cm.getMeetings().clear();
+        assertTrue(cm.getMeetings().isEmpty());
 
         Meeting m1 = cm.getMeeting(2);
-
-        assertTrue(cm.getMeetings().isEmpty());
         assertNull(m1);
     }
 
-    //getMeetingListOn
+    //getFutureMeetingList
 
     @Test(expected = IllegalArgumentException.class)
     public void shouldThrowAnExceptionIfContactDoesNotExist() {
-        Contact contact = new ContactImpl(-1, "", ""); //non existing contact
+        Contact contact = new ContactImpl(100, "", ""); //non existing contact
 
-        cm.getMeetingListOn(contact);
+        cm.getFutureMeetingList(contact);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void shouldThrowAnExceptionIfContactIsNotGiven() {
+        cm.getFutureMeetingList(null);
     }
 
     @Test
-    public void shouldReturnEmptyListWhenIfContactIsPresentOnlyInPastMeetings() {
+    public void shouldReturnEmptyListWhenContactIsPresentOnlyInPastMeetings() {
         Contact pastContact = new ContactImpl(10, "name_10", "notes_10"); //existing contact in Past Meetings
+        List<Meeting> resultList = cm.getFutureMeetingList(pastContact);
 
-        List<Meeting> resultList = cm.getMeetingListOn(pastContact);
-
-        assertTrue(cm.testGetExistingContacts().contains(pastContact)); //ensure that the contact exists
+        assertTrue(contacts.contains(pastContact)); //ensure that the contact exists
         assertTrue(resultList.isEmpty());
     }
 
     @Test
     public void shouldReturnListOfFutureMeetingsWithProvidedContact() {
-        Contact contact = new ContactImpl(1, "name_1", "notes_1"); //existing contact in FutureMeetings
-
-        List<Meeting> resultList = cm.getMeetingListOn(contact);
+        Contact contact = new ContactImpl(1, "name", "notes"); //existing contact in FutureMeetings
+        List<Meeting> resultList = cm.getFutureMeetingList(contact);
 
         assertThat(resultList.size(), is(5));
     }
 
     @Test
     public void shouldReturnSortedByDateListOfContacts() {
-        Contact contact = new ContactImpl(5, "name_5", "notes_5"); //existing contact in FutureMeetings
-
+        Contact contact = new ContactImpl(5, "name", "notes"); //existing contact in FutureMeetings
         List<Meeting> expected = new ArrayList<>(futureMeetings);
         Collections.reverse(expected);
 
-        List<Meeting> resultList = cm.getMeetingListOn(contact);
+        List<Meeting> resultList = cm.getFutureMeetingList(contact);
+
         assertEquals(expected, resultList);
         assertTrue(resultList.containsAll(futureMeetings));
+    }
+
+    //getMeetingListOn
+
+    @Test(expected = NullPointerException.class)
+    public void shouldThrowExceptionIfDateNull() {
+        cm.getMeetingListOn(null);
+
     }
 
     @Test
@@ -245,13 +269,13 @@ public class ContactManagerImplTest {
                 .map(id -> new MeetingImpl(id, date, participantsFuture))
                 .collect(Collectors.toList());
 
-        cm.addMeetings(sameDayMeetings);
+        meetings.addAll(sameDayMeetings);
+        assertThat(meetings.size(), is(14));
 
         List<Meeting> result = cm.getMeetingListOn(date);
 
-        assertThat(result.size(), is(4));
+
         assertEquals(sameDayMeetings, result);
-        assertTrue(result.containsAll(sameDayMeetings));
     }
 
     @Test
@@ -263,17 +287,8 @@ public class ContactManagerImplTest {
         assertTrue(result.isEmpty());
     }
 
+
     //getPastMeetingListFor
-
-    @Test
-    public void shouldReturnPastMeetingListWhenMeetingsWithProvidedDateNotFound() {
-        Contact contact = new ContactImpl(6, "name_6", "notes_6");
-
-        List<PastMeeting> result = cm.getPastMeetingListFor(contact);
-
-        assertThat(result.size(), is(5));
-        assertThat(result.get(0), instanceOf(PastMeeting.class));
-    }
 
     @Test(expected = IllegalArgumentException.class)
     public void shouldThrowExceptionIfContactNotExists() {
@@ -282,26 +297,38 @@ public class ContactManagerImplTest {
         cm.getPastMeetingListFor(contact);
     }
 
+    @Test(expected = NullPointerException.class)
+    public void shouldThrowExceptionIfContactNull() {
+        cm.getPastMeetingListFor(null);
+    }
+
     @Test
-    public void shouldReturnEmptyListIfNoPastMeetings() {
+    public void shouldReturnPastMeetingListForProvidedContact() {
+        Contact contact = new ContactImpl(6, "name", "notes");
+
+        List<PastMeeting> result = cm.getPastMeetingListFor(contact);
+
+        assertThat(result.size(), is(5));
+        result.stream().forEach(meeting -> {
+            assertThat(meeting, instanceOf(PastMeeting.class));
+        });
+
+    }
+
+    @Test
+    public void shouldReturnEmptyListIfContactIsInFutureMeetings() {
         Contact contact = new ContactImpl(5, "name_5", "notes_5");
-        cm.setMeetings(futureMeetings);
+
         List<PastMeeting> result = cm.getPastMeetingListFor(contact);
 
         assertTrue(result.isEmpty());
     }
 
-    @Test
-    public void shouldReturnEmptyListIfContactExistsButNoInPastMeetings() {
-        Contact contact = new ContactImpl(5, "name_5", "notes_5");
-        List<PastMeeting> result = cm.getPastMeetingListFor(contact);
-
-        assertTrue(result.isEmpty());
-    }
 
     // addNewPastMeeting
+
     @Test(expected = NullPointerException.class)
-    public void shouldThrowAnExceptionIfContactAreNotProvided() {
+    public void shouldThrowAnExceptionIfContactsNotProvided() {
         cm.addNewPastMeeting(null, new GregorianCalendar(), "notes");
     }
 
@@ -318,14 +345,47 @@ public class ContactManagerImplTest {
     @Test(expected = IllegalArgumentException.class)
     public void shouldThrowAnExceptionIfContactListIsEmpty() {
         participantsPast.clear();
+
         cm.addNewPastMeeting(participantsPast, new GregorianCalendar(), "notes");
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void shouldThrowAnExceptionIfAnyOfContactsNotExists() {
-        Set<Contact> newContacts = new HashSet<>();
-        newContacts.addAll(participantsPast);
-        newContacts.add(new ContactImpl(11, "name_11", "notes_11")); //add non existing contact
-        cm.addNewPastMeeting(participantsPast, new GregorianCalendar(), "notes");
+        Set<Contact> newContacts = new HashSet<>(Arrays.asList(new ContactImpl(11, "name_11", "notes_11")));
+
+        cm.addNewPastMeeting(newContacts, new GregorianCalendar(), "notes");
+    }
+
+    @Test
+    public void shouldAddNewPastMeeting() {
+        Set<Contact> newContacts = new HashSet<>(Arrays.asList(new ContactImpl(1, "TEST", "notes_1")));
+        meetings.remove(4);
+        cm.addNewPastMeeting(newContacts, new GregorianCalendar(), "notes");
+
+        Meeting getBack = meetings.get(4);
+
+        assertThat(meetings.size(), is(10));
+        assertThat(getBack.getId(), is(1));
+//        assertThat(getBack.getNotes(), is("TEST"));
+        assertThat(getBack, instanceOf(PastMeeting.class));
+        assertThat(getBack.getContacts().size(), is(1));
+    }
+
+    @Test
+    public void test() {
+        List<FutureMeeting> future = IntStream.rangeClosed(1, 5)
+                .boxed()
+                .map(id -> new FutureMeetingImpl(id, new GregorianCalendar(2020+id, 0, 10), participantsFuture))
+                .collect(Collectors.toList());
+
+        List<PastMeeting> past = IntStream.rangeClosed(6, 10)
+                .boxed()
+                .map(id -> new PastMeetingImpl(id, new GregorianCalendar(2000-id, 0, 10), participantsPast, "TEST"))
+                .collect(Collectors.toList());
+
+        List<? super Meeting> meetings = new ArrayList<>();
+        meetings.addAll(future);
+        meetings.addAll(past);
+        assertTrue(!meetings.isEmpty());
     }
 }

@@ -1,10 +1,8 @@
 import interfaces.*;
 
 import javax.xml.bind.annotation.*;
-import java.util.Calendar;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.lang.reflect.InvocationTargetException;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static utils.ContactManagerFilters.*;
@@ -20,26 +18,36 @@ import static utils.Utils.isFuture;
 @XmlAccessorType(XmlAccessType.FIELD)
 public class ContactManagerImpl implements ContactManager {
 
+    @XmlElementWrapper(name = "contacts")
+    @XmlAnyElement
+    private static Set<Contact> allContacts;
+
     @XmlElementWrapper(name = "meetings")
     @XmlAnyElement
-    private static List<Meeting> meetings;
+    private static List<? super Meeting> meetings;
 
-    public ContactManagerImpl(List<Meeting> meetings) {
+    public ContactManagerImpl(Set<Contact> contacts, List<Meeting> meetings) {
+        this.allContacts = contacts;
         this.meetings = meetings;
     }
 
-    //for XML marshalling purpose
+    //non argument constructor for XML marshalling purpose
     private ContactManagerImpl(){}
 
-    public static void setMeetings(List<Meeting> meetings) {
-        ContactManagerImpl.meetings = meetings;
-    }
-    public List<Meeting> getMeetings() {
+    public List<? super Meeting> getMeetings() {
         return meetings;
     }
 
-    public void addMeetings(List<Meeting> anotherMeetings) {
-        meetings.addAll(anotherMeetings);
+    public Set<Contact> getAllContacts() {
+        return allContacts;
+    }
+
+    public void setMeetings(List<Meeting> meetings) {
+        ContactManagerImpl.meetings = meetings;
+    }
+
+    public void setContacts(Set<Contact> contacts) {
+        ContactManagerImpl.allContacts = contacts;
     }
 
     /**
@@ -48,7 +56,7 @@ public class ContactManagerImpl implements ContactManager {
      * An ID is returned when the meeting is put into the system. This
      * ID must be positive and non-zero.
      *
-     * @param contacts a list of contacts that will participate in the meeting
+     * @param contacts a list of allContacts that will participate in the meeting
      * @param date the date on which the meeting will take place
      * @return the ID for the meeting
      * @throws IllegalArgumentException if the meeting is set for a time
@@ -57,9 +65,9 @@ public class ContactManagerImpl implements ContactManager {
      */
     @Override
     public int addFutureMeeting(Set<Contact> contacts, Calendar date) {
-        if (!isFuture(date)) throw new IllegalArgumentException("Date is in the past.");
+        if (!isFuture(date) || !allContacts.containsAll(contacts)) throw new IllegalArgumentException();
 
-        int newID = generateUniqueMeetingId();
+        int newID = generateUniqueId(meetings); //always returns > 0
         meetings.add(new MeetingImpl(newID, date, contacts));
 
         return newID;
@@ -111,14 +119,20 @@ public class ContactManagerImpl implements ContactManager {
      * the list will be chronologically sorted and will not contain any
      * duplicates.
      *
-     * @param contact one of the users contacts
+     * @param contact one of the users allContacts
      * @return the list of future meeting(s) scheduled with this contact (maybe empty).
      * @throws IllegalArgumentException if the contact does not exist
      * @throws NullPointerException if the contact is null
      */
-    public List<Meeting> getMeetingListOn(Contact contact) {
-        if (!getAllContacts().contains(contact)) throw new IllegalArgumentException("Contact doesn't exist.");
-        return filterFutureMeetingsWithContact(meetings, contact);
+    @Override
+    public List<Meeting> getFutureMeetingList(Contact contact) {
+        if (contact == null){
+            throw new NullPointerException();
+        } else if (!allContacts.contains(contact)){
+            throw new IllegalArgumentException();
+        }
+
+        return filterFutureMeetingsWithContact((List<Meeting>)meetings, contact);
     }
 
     /**
@@ -135,6 +149,7 @@ public class ContactManagerImpl implements ContactManager {
      */
     @Override
     public List<Meeting> getMeetingListOn(Calendar date) {
+        if (date == null) throw new NullPointerException();
         return filterFutureMeetingsOnDate(meetings, date);
     }
 
@@ -145,14 +160,19 @@ public class ContactManagerImpl implements ContactManager {
      * the list will be chronologically sorted and will not contain any
      * duplicates.
      *
-     * @param contact one of the users contacts
+     * @param contact one of the users allContacts
      * @return the list of future meeting(s) scheduled with this contact (maybe empty).
      * @throws IllegalArgumentException if the contact does not exist
      * @throws NullPointerException if the contact is null
      */
     @Override
     public List<PastMeeting> getPastMeetingListFor(Contact contact) {
-        if (!getAllContacts().contains(contact)) throw new IllegalArgumentException("Contact doesn't exist.");
+        if (contact == null) {
+            throw new NullPointerException();
+        }else if (!allContacts.contains(contact)) {
+            throw new IllegalArgumentException();
+        }
+
         List<PastMeeting> result = filterPastMeetingsByContact(meetings, contact).stream()
                 .map(ContactManagerImpl::toPastMeeting)
                 .collect(Collectors.toList());
@@ -166,16 +186,20 @@ public class ContactManagerImpl implements ContactManager {
      * @param contacts a list of participants
      * @param date the date on which the meeting took place
      * @param text messages to be added about the meeting.
-     * @throws IllegalArgumentException if the list of contacts is
-     * empty, or any of the contacts does not exist
+     * @throws IllegalArgumentException if the list of allContacts is
+     * empty, or any of the allContacts does not exist
      * @throws NullPointerException if any of the arguments is null
      */
     @Override
     public void addNewPastMeeting(Set<Contact> contacts, Calendar date, String text) {
-        if(contacts == null || date == null || text == null) throw new NullPointerException();
+        if(contacts == null || date == null || text == null){
+            throw new NullPointerException();
+        } else if(contacts.isEmpty() || !allContacts.containsAll(contacts)) {
+            throw new IllegalArgumentException();
+        }
 
-        if(contacts.isEmpty()) throw new IllegalArgumentException();
-
+        Meeting meeting = new PastMeetingImpl(generateUniqueId(meetings), date, contacts, text);
+        meetings.add(meeting);
     }
 
     /**
@@ -212,13 +236,13 @@ public class ContactManagerImpl implements ContactManager {
     }
 
     /**
-     * Returns a list with the contacts whose name contains that string.
+     * Returns a list with the allContacts whose name contains that string.
      *
      * If the string is the empty string, this methods returns the set
-     * that contains all current contacts.
+     * that contains all current allContacts.
      *
      * @param name the string to search for
-     * @return a list with the contacts whose name contains that string.
+     * @return a list with the allContacts whose name contains that string.
      * @throws NullPointerException if the parameter is null
      */
     @Override
@@ -227,11 +251,11 @@ public class ContactManagerImpl implements ContactManager {
     }
 
     /**
-     * Returns a list containing the contacts that correspond to the IDs.
+     * Returns a list containing the allContacts that correspond to the IDs.
      * Note that this method can be used to retrieve just one contact by passing only one ID.
      *
      * @param ids an arbitrary number of contact IDs
-     * @return a list containing the contacts that correspond to the IDs.
+     * @return a list containing the allContacts that correspond to the IDs.
      * @throws IllegalArgumentException if no IDs are provided or if
      * any of the provided IDs does not correspond to a real contact
      */
@@ -264,7 +288,7 @@ public class ContactManagerImpl implements ContactManager {
             return null;
         } else {
             Meeting meeting = matchedMeeting.get();
-            if (isFuture(meeting.getDate()))throw new IllegalArgumentException("Invalid ID for past meeting.");
+            if (isFuture(meeting.getDate()))throw new IllegalStateException();
             return toPastMeeting(meeting);
         }
     }
@@ -303,24 +327,39 @@ public class ContactManagerImpl implements ContactManager {
         return filterAnyMeetingsWithID(meetings, id).stream().findFirst();
     }
 
+
     /**
-     * Generate lowest possible in as a unique ID for the meeting. Checks all existing IDs in meeting
-     * list.
+     * Wrapper method to generate unique id based on ids of elements in a collection.
      *
-     * @return unique int ID
+     * @param collection
+     * @param <T>
+     * @return
      */
-    private static int generateUniqueMeetingId() {
-        return generateNewNumber(getAllMeetingIDs());
+    private static <T> int generateUniqueId(Collection<T> collection) {
+        return generateNewNumber(getExistingIDs(collection));
     }
 
     /**
-     * Returns all IDs of existing meetings.
-     *
-     * @return
+     * Generic method to return all IDs of a collection, where element have getId method.
+     * @param collection
+     * @param <T>
+     * @return Set of all unique IDs of elements of a collection
      */
-    private static Set<Integer> getAllMeetingIDs() {
-        return meetings.stream()
-                .map(meeting -> meeting.getId())
+    private static <T> Set<Integer> getExistingIDs(Collection<T> collection) {
+        return collection.stream()
+                .map(object -> {
+                    int id = 0;
+                    try {
+                        id = (int) object.getClass().getMethod("getId").invoke(object);
+                    } catch (NoSuchMethodException e) {
+                        e.printStackTrace();
+                    } catch (InvocationTargetException e) {
+                        e.printStackTrace();
+                    } catch (IllegalAccessException e) {
+                        e.printStackTrace();
+                    }
+                    return id;
+                })
                 .collect(Collectors.toSet());
     }
 
@@ -350,28 +389,6 @@ public class ContactManagerImpl implements ContactManager {
         } else {
             return new FutureMeetingImpl(meeting.getId(), meeting.getDate(), meeting.getContacts());
         }
-    }
-
-    /**
-     * Helper method to return all existing contacts without duplicates.
-     *
-     * @return Set of existing contacts
-     */
-    private Set<Contact> getAllContacts(){
-        Set<Contact>  contacts = meetings.stream()
-                .flatMap(meeting -> meeting.getContacts()
-                        .stream())
-                .collect(Collectors.toSet());
-        return contacts;
-    }
-
-    /**
-     * Wrapper public methods of getAllContacts for testing purposes
-     *
-     * @return Set of existing contacts
-     */
-    public Set<Contact> testGetExistingContacts(){
-        return getAllContacts();
     }
 
 }

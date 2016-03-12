@@ -5,10 +5,7 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.GregorianCalendar;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -23,8 +20,10 @@ public class TESTflush {
         List<Meeting> pastAndFutureMeetings;
         Set<Contact> participantsFuture;
         Set<Contact> participantsPast;
+        Set<Contact> contacts;
 
         pastAndFutureMeetings = new ArrayList<>();
+        contacts = new HashSet<>();
 
         participantsFuture = IntStream.rangeClosed(1, 2)
                 .boxed()
@@ -50,13 +49,16 @@ public class TESTflush {
         pastAndFutureMeetings.addAll(futureMeetings);
         pastAndFutureMeetings.addAll(pastMeetings);
 
-        cm = new ContactManagerImpl(pastAndFutureMeetings);
+        contacts.addAll(participantsFuture);
+        contacts.addAll(participantsPast);
+
+        cm = new ContactManagerImpl(contacts, pastAndFutureMeetings);
 
 
         JAXBContext jaxbContext = JAXBContext.newInstance(ContactManagerImpl.class);
         Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
 
-        jaxbMarshaller.marshal(cm, new File("contactManager.xml"));
+        jaxbMarshaller.marshal(cm, new File("contacts.txt"));
     }
 
 }
