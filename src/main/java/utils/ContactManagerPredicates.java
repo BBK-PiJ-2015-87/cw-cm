@@ -1,7 +1,9 @@
 package utils;
 
 import interfaces.Contact;
+import interfaces.FutureMeeting;
 import interfaces.Meeting;
+import interfaces.PastMeeting;
 
 import java.util.*;
 import java.util.function.Predicate;
@@ -12,31 +14,33 @@ import java.util.function.Predicate;
  * Created by vladimirsivanovs on 11/03/2016.
  */
 public class ContactManagerPredicates {
-
+    private final static long TIME_THRESHOLD = 5000;
     /**
-     *
-     * @return
+     * Dummy predicate.
+     * @return true
      */
     public static Predicate<Meeting> dummyPredicate() {
         return meeting -> true;
     }
 
     /**
+     * Tests if meeting is a future meeting
      *
-     * @return
+     * @param date to compare with
+     * @return true if meeting is in future and of FutureMeeting type, false otherwise
      */
-    public static Predicate<Meeting> isFutureMeeting() {
-        Calendar now = new GregorianCalendar();
-        return meeting -> meeting.getDate().after(now);
+    public static Predicate<Meeting> isFutureMeeting(Calendar date) {
+        return meeting -> meeting.getDate().after(date) && meeting instanceof FutureMeeting;
     }
 
     /**
+     * Tests if meeting is a past meeting
      *
-     * @return
+     * @param date to compare with
+     * @return true if meeting is in the past and of PastMeeting type, false otherwise
      */
-    public static Predicate<Meeting> isPastMeeting() {
-        Calendar now = new GregorianCalendar();
-        return meeting -> meeting.getDate().before(now);
+    public static Predicate<Meeting> isPastMeeting(Calendar date) {
+        return meeting -> meeting.getDate().before(date) && meeting instanceof PastMeeting;
     }
 
     /**
@@ -53,7 +57,7 @@ public class ContactManagerPredicates {
      * @param id
      * @return
      */
-    public static Predicate<Meeting> meetingHasID(int id) {
+    public static Predicate<Meeting> meetingWithID(int id) {
         return meeting -> meeting.getId() == id;
     }
 
@@ -62,7 +66,7 @@ public class ContactManagerPredicates {
      * @param contact
      * @return
      */
-    public static Predicate<Meeting> meetingHasContact(Contact contact) {
+    public static Predicate<Meeting> meetingWithContact(Contact contact) {
         return meeting -> meeting.getContacts().contains(contact);
     }
 
