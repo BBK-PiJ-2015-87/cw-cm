@@ -13,20 +13,24 @@ import java.util.stream.Collectors;
 import static utils.ContactManagerPredicates.*;
 
 /**
- * Created by vladimirsivanovs on 11/03/2016.
+ * Custom filtering methods to be used as helpers for meeting list filtering.
+ *
+ * Created by Vladimirs Ivanovs on 11/03/2016.
  */
 public class ContactManagerFilters {
 
     /**
+     * Custom method to filter list with 2 predicate.
      *
-     * @param meetings
-     * @param predicate
-     * @param predicate2
-     * @param comparator
-     * @return
+     * @param meetings list of meetings to be filtered
+     * @param predicate first filter
+     * @param predicate2 second filter
+     * @param comparator comparator to sort
+     * @return depends on set up. Can return filtered and sorted list
      */
-    public static List<Meeting> customMeetingFilter(List<Meeting> meetings, Predicate<Meeting> predicate, Predicate<Meeting> predicate2, Comparator<Meeting> comparator) {
+    public static List<Meeting> customMeetingFilter(List<? super Meeting> meetings, Predicate<Meeting> predicate, Predicate<Meeting> predicate2, Comparator<Meeting> comparator) {
         return meetings.stream()
+                .map(meeting -> (Meeting)meeting)
                 .filter(predicate)
                 .filter(predicate2)
                 .sorted(comparator)
@@ -39,7 +43,7 @@ public class ContactManagerFilters {
                 .collect(Collectors.<Contact>toSet());
     }
 
-    public static List<Meeting> filterAnyMeetingsWithID(List<Meeting> meetings, int id) {
+    public static List<Meeting> filterAnyMeetingsWithID(List<? super Meeting> meetings, int id) {
         return customMeetingFilter(meetings,  meetingHasID(id), dummyPredicate(), new DateComparator());
     }
 
@@ -55,11 +59,11 @@ public class ContactManagerFilters {
         return customMeetingFilter(meetings, isFutureMeeting(), meetingHasID(id), new DateComparator());
     }
 
-    public static List<Meeting> filterFutureMeetingsWithContact(List<Meeting> meetings, Contact contact) {
+    public static List<Meeting> filterFutureMeetingsWithContact(List<? super Meeting> meetings, Contact contact) {
         return customMeetingFilter(meetings, isFutureMeeting(), meetingHasContact(contact), new DateComparator());
     }
 
-    public static List<Meeting> filterFutureMeetingsOnDate(List<Meeting> meetings, Calendar date) {
+    public static List<Meeting> filterFutureMeetingsOnDate(List<? super Meeting> meetings, Calendar date) {
         return customMeetingFilter(meetings, isFutureMeeting(), meetingOn(date), new DateComparator());
     }
 
@@ -71,7 +75,7 @@ public class ContactManagerFilters {
         return customMeetingFilter(meetings, isPastMeeting(), meetingHasID(id), new DateComparator());
     }
 
-    public static List<Meeting> filterPastMeetingsByContact(List<Meeting> meetings, Contact contact) {
+    public static List<Meeting> filterPastMeetingsByContact(List<? super Meeting> meetings, Contact contact) {
         return customMeetingFilter(meetings, isPastMeeting(), meetingHasContact(contact), new DateComparator());
     }
 
