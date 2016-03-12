@@ -399,11 +399,11 @@ public class ContactManagerImplTest {
 
     @Test
     public void shouldReturnCorrectPastMeetingWithUpdatedNotes() {
-        PastMeeting result = cm.addMeetingNotes(10 , "_ADD");
+        PastMeeting result = cm.addMeetingNotes(10 , "ADD");
         PastMeeting expected = (PastMeeting) meetings.get(4);
 
         assertEquals(expected, result);
-        assertThat(result.getNotes(), is("TEST_ADD"));
+        assertThat(result.getNotes(), is("TEST ADD"));
     }
 
 

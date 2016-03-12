@@ -220,17 +220,22 @@ public class ContactManagerImpl implements ContactManager {
      */
     @Override
     public PastMeeting addMeetingNotes(int id, String text) {
+
         Optional<Meeting> returnedMeeting = findMeetingBy(id);
 
-        if (!returnedMeeting.isPresent()){
+        if (text == null){
+            throw new NullPointerException();
+        } else if (!returnedMeeting.isPresent()){
             throw new IllegalArgumentException();
         } else if (isFuture(returnedMeeting.get().getDate())) {
             throw new IllegalStateException();
         }
-        PastMeeting meeting = toPastMeeting(returnedMeeting.get());
-        meeting.getNotes().concat(text);
 
-        return meeting;
+        Meeting meeting = returnedMeeting.get();
+        PastMeeting converted = toPastMeetingWithNotes(meeting, text);
+        Collections.replaceAll(meetings, meeting, converted);
+
+        return converted;
     }
 
     /**
@@ -388,11 +393,22 @@ public class ContactManagerImpl implements ContactManager {
      * @return copy of a meeting with PastMeeting type
      */
     private static PastMeeting toPastMeeting(Meeting meeting) {
-        if (meeting instanceof PastMeeting){
-            return (PastMeeting) meeting;
-        } else {
-            return new PastMeetingImpl(meeting.getId(), meeting.getDate(), meeting.getContacts(), null);
-        }
+        return toPastMeetingWithNotes(meeting, null);
+    }
+
+    /**
+     * Helper method to convert meeting to PastMeeting with notes.
+     *
+     * @param meeting to be converted
+     * @param notes to the meeting
+     * @return new past meeting
+     */
+    private static PastMeeting toPastMeetingWithNotes(Meeting meeting, String notes) {
+        StringBuilder stringBuilder = new StringBuilder();
+        PastMeeting converted = (PastMeeting) meeting;
+        String fullNotes = stringBuilder.append(converted.getNotes() + " " + notes).toString().trim();
+
+        return new PastMeetingImpl(meeting.getId(), meeting.getDate(), meeting.getContacts(), fullNotes);
     }
 
     /**
