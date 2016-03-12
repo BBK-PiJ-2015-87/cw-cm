@@ -10,7 +10,9 @@ import static utils.Utils.generateNewNumber;
 import static utils.Utils.isFuture;
 
 /**
- * Created by Workstation on 19/01/16.
+ * Implementation of contact manager.
+ *
+ * Created by Vladimirs Ivanovs on 19/01/16.
  */
 
 @XmlSeeAlso({MeetingImpl.class, ContactImpl.class})
@@ -26,7 +28,7 @@ public class ContactManagerImpl implements ContactManager {
     @XmlAnyElement
     private static List<? super Meeting> meetings;
 
-    public ContactManagerImpl(Set<Contact> contacts, List<Meeting> meetings) {
+    public ContactManagerImpl(Set<Contact> contacts, List<? super Meeting> meetings) {
         this.allContacts = contacts;
         this.meetings = meetings;
     }
@@ -42,7 +44,7 @@ public class ContactManagerImpl implements ContactManager {
         return allContacts;
     }
 
-    public void setMeetings(List<Meeting> meetings) {
+    public void setMeetings(List<? super Meeting> meetings) {
         ContactManagerImpl.meetings = meetings;
     }
 
@@ -132,7 +134,7 @@ public class ContactManagerImpl implements ContactManager {
             throw new IllegalArgumentException();
         }
 
-        return filterFutureMeetingsWithContact((List<Meeting>)meetings, contact);
+        return filterFutureMeetingsWithContact(meetings, contact);
     }
 
     /**
@@ -279,9 +281,11 @@ public class ContactManagerImpl implements ContactManager {
     //HELPER METHODS
 
     /**
+     * Helper method. Returns value of optional.
      *
-     * @param matchedMeeting
-     * @return
+     * @param matchedMeeting optional of a meeting
+     * @return past meeting or null
+     * @throws IllegalArgumentException if date of meeting is in future
      */
     private PastMeeting returnPastOrThrow(Optional<Meeting> matchedMeeting) {
         if (!matchedMeeting.isPresent()) {
@@ -294,8 +298,9 @@ public class ContactManagerImpl implements ContactManager {
     }
 
     /**
+     * Helper method. Returns value of optional.
      *
-     * @param matchedMeeting
+     * @param matchedMeeting optional of a meeting
      * @return
      */
     private Meeting returnMeetingOrNull(Optional<Meeting> matchedMeeting) {
@@ -303,9 +308,11 @@ public class ContactManagerImpl implements ContactManager {
     }
 
     /**
+     * Helper method. Returns value of optional.
      *
-     * @param matchedMeeting
-     * @return
+     * @param matchedMeeting optional of a meeting
+     * @return past meeting or null
+     * @throws IllegalArgumentException if date of meeting is in future
      */
     private FutureMeeting returnFutureOrThrow(Optional<Meeting> matchedMeeting) {
         if (!matchedMeeting.isPresent()) {
@@ -341,6 +348,7 @@ public class ContactManagerImpl implements ContactManager {
 
     /**
      * Generic method to return all IDs of a collection, where element have getId method.
+     *
      * @param collection
      * @param <T>
      * @return Set of all unique IDs of elements of a collection
@@ -364,7 +372,7 @@ public class ContactManagerImpl implements ContactManager {
     }
 
     /**
-     * Helper method to convert a type of a meeting to PastMeeting.
+     * Helper method to convert meeting to PastMeeting.
      *
      * @param meeting to be converted
      * @return copy of a meeting with PastMeeting type
@@ -378,7 +386,7 @@ public class ContactManagerImpl implements ContactManager {
     }
 
     /**
-     * Helper method to convert a type of a meeting to a FutureMeeting.
+     * Helper method to convert meeting to a FutureMeeting.
      *
      * @param meeting to be converted
      * @return copy of a meeting with FutureMeeting type
@@ -390,5 +398,4 @@ public class ContactManagerImpl implements ContactManager {
             return new FutureMeetingImpl(meeting.getId(), meeting.getDate(), meeting.getContacts());
         }
     }
-
 }

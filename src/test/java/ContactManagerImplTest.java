@@ -9,10 +9,12 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import static java.util.stream.Collectors.toList;
 import static junit.framework.TestCase.assertTrue;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
+import static org.hamcrest.core.IsNot.not;
 import static org.junit.Assert.*;
 
 /**
@@ -26,11 +28,9 @@ public class ContactManagerImplTest {
     Set<Contact> participantsFuture;
     Set<Contact> participantsUnknown;
 
-    List<Meeting> meetings;
-    List<Meeting> pastMeetings;
-    List<Meeting> futureMeetings;
-
-
+    List<? super Meeting> meetings;
+    List<PastMeeting> pastMeetings;
+    List<FutureMeeting> futureMeetings;
 
 
     /**
@@ -60,13 +60,13 @@ public class ContactManagerImplTest {
 
         futureMeetings = IntStream.rangeClosed(1, 5)
                 .boxed()
-                .map(id -> new MeetingImpl(id, new GregorianCalendar(2020+id, 0, 10), participantsFuture))
-                .collect(Collectors.toList());
+                .map(id -> new FutureMeetingImpl(id, new GregorianCalendar(2020+id, 0, 10), participantsFuture))
+                .collect(toList());
 
         pastMeetings = IntStream.rangeClosed(6, 10)
                 .boxed()
-                .map(id -> new MeetingImpl(id, new GregorianCalendar(2000-id, 0, 10), participantsPast))
-                .collect(Collectors.toList());
+                .map(id -> new PastMeetingImpl(id, new GregorianCalendar(2000-id, 0, 10), participantsPast, "TEST"))
+                .collect(toList());
 
         meetings.addAll(pastMeetings);
         meetings.addAll(futureMeetings);
@@ -267,7 +267,7 @@ public class ContactManagerImplTest {
         List <Meeting> sameDayMeetings = IntStream.rangeClosed(20, 23) //set up meetings
                 .boxed()
                 .map(id -> new MeetingImpl(id, date, participantsFuture))
-                .collect(Collectors.toList());
+                .collect(toList());
 
         meetings.addAll(sameDayMeetings);
         assertThat(meetings.size(), is(14));
@@ -358,34 +358,59 @@ public class ContactManagerImplTest {
 
     @Test
     public void shouldAddNewPastMeeting() {
-        Set<Contact> newContacts = new HashSet<>(Arrays.asList(new ContactImpl(1, "TEST", "notes_1")));
-        meetings.remove(4);
-        cm.addNewPastMeeting(newContacts, new GregorianCalendar(), "notes");
+        Set<Contact> newContacts = new HashSet<>(Arrays.asList(new ContactImpl(1, "name", "notes")));
+        meetings.remove(3);
+        cm.addNewPastMeeting(newContacts, new GregorianCalendar(), "TEST_NOTES");
 
-        Meeting getBack = meetings.get(4);
+        PastMeeting getBack = (PastMeeting)meetings.get(9);
 
         assertThat(meetings.size(), is(10));
-        assertThat(getBack.getId(), is(1));
-//        assertThat(getBack.getNotes(), is("TEST"));
+        assertThat(getBack.getId(), is(0));
+        assertThat(getBack.getNotes(), is("TEST_NOTES"));
         assertThat(getBack, instanceOf(PastMeeting.class));
         assertThat(getBack.getContacts().size(), is(1));
     }
+
+    //addMeetingNotes
+
+
+
+
+
+
+
+
 
     @Test
     public void test() {
         List<FutureMeeting> future = IntStream.rangeClosed(1, 5)
                 .boxed()
                 .map(id -> new FutureMeetingImpl(id, new GregorianCalendar(2020+id, 0, 10), participantsFuture))
-                .collect(Collectors.toList());
+                .collect(toList());
 
         List<PastMeeting> past = IntStream.rangeClosed(6, 10)
                 .boxed()
                 .map(id -> new PastMeetingImpl(id, new GregorianCalendar(2000-id, 0, 10), participantsPast, "TEST"))
-                .collect(Collectors.toList());
+                .collect(toList());
+
+        Meeting m = past.get(0);
+        PastMeetingImpl pm = (PastMeetingImpl) m;
+        System.out.println(pm.getNotes());
 
         List<? super Meeting> meetings = new ArrayList<>();
         meetings.addAll(future);
         meetings.addAll(past);
-        assertTrue(!meetings.isEmpty());
+
+        List<Meeting> filtered = meetings.stream().filter(obj -> {
+            Calendar now = new GregorianCalendar();
+            Meeting meeting = (Meeting) obj;
+            return meeting.getDate().after(now);
+            })
+                .map(x -> (Meeting)x)
+                .collect(toList());
+
+        assertThat(m, instanceOf(Meeting.class));
+        assertThat(m, instanceOf(PastMeeting.class));
+        assertThat(m, not(instanceOf(FutureMeeting.class)));
     }
 }
