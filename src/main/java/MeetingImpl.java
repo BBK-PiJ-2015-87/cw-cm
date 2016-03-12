@@ -30,7 +30,7 @@ public class MeetingImpl implements Meeting {
     private MeetingImpl(){}
 
     public MeetingImpl(int id, Calendar date, Set<Contact> contacts) {
-        if (date == null || contacts == null || contacts.isEmpty()) throw new IllegalArgumentException();
+
         this.id = id;
         this.date = date;
         this.contacts = contacts;

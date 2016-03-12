@@ -65,19 +65,4 @@ public class MeetingImplTest {
     public void shouldReturnCorrectContacts() throws Exception {
         assertEquals(contacts1, meeting1.getContacts());
     }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void shouldThrowExceptionWhenConstructWithEmptySet() throws Exception {
-        new MeetingImpl(1, new GregorianCalendar(), new HashSet<>());
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void shouldThrowExceptionWhenContactsNotProvided() throws Exception {
-        new MeetingImpl(1, new GregorianCalendar(), null);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void shouldThrowExceptionWhenDateNotProvided() throws Exception {
-        new MeetingImpl(1, null, contacts1);
-    }
 }
