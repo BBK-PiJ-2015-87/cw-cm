@@ -220,7 +220,17 @@ public class ContactManagerImpl implements ContactManager {
      */
     @Override
     public PastMeeting addMeetingNotes(int id, String text) {
-        return null;
+        Optional<Meeting> returnedMeeting = findMeetingBy(id);
+
+        if (!returnedMeeting.isPresent()){
+            throw new IllegalArgumentException();
+        } else if (isFuture(returnedMeeting.get().getDate())) {
+            throw new IllegalStateException();
+        }
+        PastMeeting meeting = toPastMeeting(returnedMeeting.get());
+        meeting.getNotes().concat(text);
+
+        return meeting;
     }
 
     /**

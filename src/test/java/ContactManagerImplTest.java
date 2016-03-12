@@ -373,6 +373,38 @@ public class ContactManagerImplTest {
 
     //addMeetingNotes
 
+    @Test(expected = IllegalArgumentException.class)
+    public void shouldThrowExceptionIfMeetingNotExists() {
+        cm.addMeetingNotes(11,"TEST_NOTES");
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void shouldThrowExceptionIfFutureMeetingID() {
+        cm.addMeetingNotes(1,"TEST_NOTES");
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void shouldThrowExceptionIfNotesNull() {
+        cm.addMeetingNotes(6,null);
+    }
+
+    @Test
+    public void shouldReturnCorrectPastMeeting() {
+        PastMeeting result = cm.addMeetingNotes(10 , "_ADD");
+        PastMeeting expected = (PastMeeting) meetings.get(4);
+
+        assertEquals(expected, result);
+        assertThat(result.getId(), is(10));
+    }
+
+    @Test
+    public void shouldReturnCorrectPastMeetingWithUpdatedNotes() {
+        PastMeeting result = cm.addMeetingNotes(10 , "_ADD");
+        PastMeeting expected = (PastMeeting) meetings.get(4);
+
+        assertEquals(expected, result);
+        assertThat(result.getNotes(), is("TEST_ADD"));
+    }
 
 
 
