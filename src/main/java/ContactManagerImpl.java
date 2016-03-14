@@ -1,6 +1,10 @@
 import interfaces.*;
 
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
 import javax.xml.bind.annotation.*;
+import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -29,9 +33,10 @@ public class ContactManagerImpl implements ContactManager {
     @XmlAnyElement
     private static List<? super Meeting> meetings;
 
-    public ContactManagerImpl(Set<Contact> contacts, List<? super Meeting> meetings) {
-        this.allContacts = contacts;
-        this.meetings = meetings;
+    private static ContactManagerImpl contactManager = new ContactManagerImpl( );
+
+    public static ContactManagerImpl getInstance( ) {
+        return contactManager;
     }
 
     //non argument constructor for XML marshalling purpose
@@ -318,7 +323,18 @@ public class ContactManagerImpl implements ContactManager {
      */
     @Override
     public void flush() {
+        JAXBContext jaxbContext = null;
+        Marshaller jaxbMarshaller = null;
 
+        File file = new File("contacts.txt");
+
+        try {
+            jaxbContext = JAXBContext.newInstance(ContactManagerImpl.class);
+            jaxbMarshaller = jaxbContext.createMarshaller();
+            jaxbMarshaller.marshal(getInstance(), file);
+        } catch (JAXBException e) {
+            e.printStackTrace();
+        }
     }
 
 

@@ -73,7 +73,9 @@ public class ContactManagerImplTest {
         contacts.addAll(participantsPast);
         contacts.addAll(participantsFuture);
 
-        cm = new ContactManagerImpl(contacts, meetings);
+        cm = ContactManagerImpl.getInstance();
+        cm.setContacts(contacts);
+        cm.setMeetings(meetings);
     }
 
     //updateStatus
