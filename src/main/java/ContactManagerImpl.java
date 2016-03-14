@@ -305,7 +305,7 @@ public class ContactManagerImpl implements ContactManager {
     public Set<Contact> getContacts(int... ids) {
         if (ids == null) throw new IllegalArgumentException();
 
-        Set<Integer> allIDs = getExistingIDs(allContacts);
+        Set<Integer> allIDs = allContacts.stream().map(Contact::getId).collect(Collectors.toSet());
         List<Integer> providedIds = IntStream.of(ids).boxed().collect(Collectors.toList());
 
         if (!allIDs.containsAll(providedIds))throw new IllegalArgumentException();
