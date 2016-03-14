@@ -14,7 +14,6 @@ import static junit.framework.TestCase.assertTrue;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
-import static org.hamcrest.core.IsNot.not;
 import static org.junit.Assert.*;
 
 /**
@@ -45,12 +44,12 @@ public class ContactManagerImplTest {
 
         participantsFuture = IntStream.rangeClosed(1, 5)
                 .boxed()
-                .map(id -> new ContactImpl(id, "name_"+id, "notes_"+id))
+                .map(id -> new ContactImpl(id, "name_future"+id, "notes_"+id))
                 .collect(Collectors.toSet());
 
         participantsPast = IntStream.rangeClosed(6, 10)
                 .boxed()
-                .map(id -> new ContactImpl(id, "name_"+id, "notes_"+id))
+                .map(id -> new ContactImpl(id, "name_past"+id, "notes_"+id))
                 .collect(Collectors.toSet());
 
         participantsUnknown = IntStream.rangeClosed(101, 105)
@@ -77,6 +76,27 @@ public class ContactManagerImplTest {
         cm = new ContactManagerImpl(contacts, meetings);
     }
 
+    //updateStatus
+    @Test
+    public void shouldMakeAllMeetingsPast(){
+        Calendar past = new GregorianCalendar(1000, 0, 10);
+
+        cm.getMeetings().stream()
+                .map(meeting -> (Meeting) meeting)
+                .forEach(m -> assertFalse(m.getDate().before(past)));
+
+        Calendar future = new GregorianCalendar(2500, 0, 10);
+
+        cm.updateStatus(future);
+
+        cm.getMeetings().stream()
+                .map(meeting -> (Meeting) meeting)
+                .forEach(m -> assertTrue(m.getDate().before(future)));
+
+
+
+
+    }
 
     //addFutureMeeting
 
@@ -406,43 +426,102 @@ public class ContactManagerImplTest {
         assertThat(result.getNotes(), is("TEST ADD"));
     }
 
+    //addNewContact
 
+    @Test(expected = NullPointerException.class)
+    public void shouldThrowExceptionIfNameNull() {
+        cm.addNewContact(null, "notes");
+    }
 
+    @Test(expected = NullPointerException.class)
+    public void shouldThrowExceptionIfNotesAreNull() {
+        cm.addNewContact("name", null);
+    }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void shouldThrowExceptionIfNameEmpty() {
+        cm.addNewContact("", "notes");
+    }
 
-
-
+    @Test(expected = IllegalArgumentException.class)
+    public void shouldThrowExceptionIfNotesEmpty() {
+        cm.addNewContact("name", "");
+    }
 
     @Test
-    public void test() {
-        List<FutureMeeting> future = IntStream.rangeClosed(1, 5)
-                .boxed()
-                .map(id -> new FutureMeetingImpl(id, new GregorianCalendar(2020+id, 0, 10), participantsFuture))
-                .collect(toList());
+    public void shouldAddContactIfNotesEmpty() {
+        int id = cm.addNewContact("name", "notes");
+        int id2 = cm.addNewContact("name", "notes");
 
-        List<PastMeeting> past = IntStream.rangeClosed(6, 10)
-                .boxed()
-                .map(id -> new PastMeetingImpl(id, new GregorianCalendar(2000-id, 0, 10), participantsPast, "TEST"))
-                .collect(toList());
-
-        Meeting m = past.get(0);
-        PastMeetingImpl pm = (PastMeetingImpl) m;
-        System.out.println(pm.getNotes());
-
-        List<? super Meeting> meetings = new ArrayList<>();
-        meetings.addAll(future);
-        meetings.addAll(past);
-
-        List<Meeting> filtered = meetings.stream().filter(obj -> {
-            Calendar now = new GregorianCalendar();
-            Meeting meeting = (Meeting) obj;
-            return meeting.getDate().after(now);
-            })
-                .map(x -> (Meeting)x)
-                .collect(toList());
-
-        assertThat(m, instanceOf(Meeting.class));
-        assertThat(m, instanceOf(PastMeeting.class));
-        assertThat(m, not(instanceOf(FutureMeeting.class)));
+        assertThat(cm.getAllContacts().size(), is(12));
+        assertThat((id), is(0));
+        assertThat((id2), is(11));
     }
+
+    //getContacts(name)
+    @Test(expected = NullPointerException.class)
+    public void shouldThrowExceptionIfNameIsNull() {
+        String name = null;
+        cm.getContacts(name);
+    }
+
+    @Test
+    public void shouldReturnAllContacts() {
+        Set<Contact> result = cm.getContacts("");
+
+        assertThat(result.size(), is(10));
+    }
+
+    @Test
+    public void shouldReturnHalfOfContacts() {
+        Set<Contact> future = cm.getContacts("future");
+        Set<Contact> past = cm.getContacts("past");
+
+        assertThat(future.size(), is(5));
+        assertThat(past.size(), is(5));
+    }
+
+    @Test
+    public void shouldReturnEmptySetIfNoMatch() {
+        Set<Contact> future = cm.getContacts("contact");
+
+        assertThat(future.size(), is(0));
+    }
+
+    //getContact(ids)
+
+    @Test(expected = IllegalArgumentException.class)
+    public void shouldThrowExceptionIfIDsNull() {
+        int[] ids = null;
+        cm.getContacts(ids);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void shouldThrowExceptionIfSomeIDsNotExist() {
+        int[] ids = {1,2,3,4,11};
+        cm.getContacts(ids);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void shouldThrowExceptionIfAllIDsNotExist() {
+        int[] ids = {11, 12, 13};
+        cm.getContacts(ids);
+    }
+
+    @Test
+    public void shouldReturnCorrectContact() {
+        int[] ids = {7};
+        Set<Contact> contacts = cm.getContacts(ids);
+
+        assertThat(contacts.size(), is(1));
+    }
+
+    @Test
+    public void shouldReturnAllCorrectContacts() {
+        int[] ids = {1,2,5,10};
+        Set<Contact> contacts = cm.getContacts(ids);
+
+        assertThat(contacts.size(), is(4));
+    }
+
 }

@@ -4,6 +4,7 @@ import javax.xml.bind.annotation.*;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static utils.ContactManagerFilters.*;
 import static utils.Utils.generateNewNumber;
@@ -133,8 +134,8 @@ public class ContactManagerImpl implements ContactManager {
         } else if (!allContacts.contains(contact)){
             throw new IllegalArgumentException();
         }
-
-        return filterFutureMeetingsWithContact(meetings, contact);
+        Calendar now = new GregorianCalendar();
+        return filterFutureMeetingsWithContact(meetings, contact, now );
     }
 
     /**
@@ -152,7 +153,7 @@ public class ContactManagerImpl implements ContactManager {
     @Override
     public List<Meeting> getMeetingListOn(Calendar date) {
         if (date == null) throw new NullPointerException();
-        return filterFutureMeetingsOnDate(meetings, date);
+        return filterAnyMeetingsOnDate(meetings, date);
     }
 
     /**
@@ -169,14 +170,16 @@ public class ContactManagerImpl implements ContactManager {
      */
     @Override
     public List<PastMeeting> getPastMeetingListFor(Contact contact) {
+        Calendar now = new GregorianCalendar();
+        updateStatus(now);
         if (contact == null) {
             throw new NullPointerException();
         }else if (!allContacts.contains(contact)) {
             throw new IllegalArgumentException();
         }
 
-        List<PastMeeting> result = filterPastMeetingsByContact(meetings, contact).stream()
-                .map(ContactManagerImpl::toPastMeeting)
+        List<PastMeeting> result = filterPastMeetingsByContact(meetings, contact, now).stream()
+                .map(m -> (PastMeeting)m)
                 .collect(Collectors.toList());
 
         return result;
@@ -249,7 +252,15 @@ public class ContactManagerImpl implements ContactManager {
      */
     @Override
     public int addNewContact(String name, String notes) {
-        return 0;
+        if (name == null || notes == null) {
+            throw new NullPointerException();
+        } else if (name.equals("") || notes.equals("")){
+            throw new IllegalArgumentException();
+        }
+        int id = generateUniqueId(allContacts);
+        Contact contact = new ContactImpl(id, name, notes );
+        allContacts.add(contact);
+        return id;
     }
 
     /**
@@ -264,7 +275,16 @@ public class ContactManagerImpl implements ContactManager {
      */
     @Override
     public Set<Contact> getContacts(String name) {
-        return null;
+        if(name == null){
+            throw new NullPointerException();
+        } else if (name.equals("")){
+            return allContacts;
+        }
+
+        Set<Contact> contacts = allContacts.stream()
+                .filter(contact -> contact.getName().contains(name))
+                .collect(Collectors.toSet());
+        return contacts;
     }
 
     /**
@@ -278,7 +298,16 @@ public class ContactManagerImpl implements ContactManager {
      */
     @Override
     public Set<Contact> getContacts(int... ids) {
-        return null;
+        if (ids == null) throw new IllegalArgumentException();
+
+        Set<Integer> allIDs = allContacts.stream().map(Contact::getId).collect(Collectors.toSet());
+        List<Integer> providedIds = IntStream.of(ids).boxed().collect(Collectors.toList());
+
+        if (!allIDs.containsAll(providedIds))throw new IllegalArgumentException();
+
+        return allContacts.stream()
+                .filter(contact -> providedIds.contains(contact.getId()))
+                .collect(Collectors.toSet());
     }
 
     /**
@@ -294,6 +323,19 @@ public class ContactManagerImpl implements ContactManager {
 
 
     //HELPER METHODS
+
+    public static void updateStatus(Calendar date) {
+        List<Meeting> casted = (List<Meeting>)meetings;
+        List<? super Meeting> updated = casted.stream()
+                .map(meeting -> {
+                    if (meeting.getDate().before(date)) {
+                        toPastMeeting(meeting);
+                    }
+                    return meeting;
+                })
+                .collect(Collectors.toList());
+        meetings = updated;
+    }
 
     /**
      * Helper method. Returns value of optional.
@@ -393,7 +435,7 @@ public class ContactManagerImpl implements ContactManager {
      * @return copy of a meeting with PastMeeting type
      */
     private static PastMeeting toPastMeeting(Meeting meeting) {
-        return toPastMeetingWithNotes(meeting, null);
+        return toPastMeetingWithNotes(meeting, "");
     }
 
     /**
@@ -405,8 +447,11 @@ public class ContactManagerImpl implements ContactManager {
      */
     private static PastMeeting toPastMeetingWithNotes(Meeting meeting, String notes) {
         StringBuilder stringBuilder = new StringBuilder();
-        PastMeeting converted = (PastMeeting) meeting;
-        String fullNotes = stringBuilder.append(converted.getNotes() + " " + notes).toString().trim();
+        if (meeting instanceof PastMeeting){
+            stringBuilder.append(((PastMeeting) meeting).getNotes());
+        }
+
+        String fullNotes = stringBuilder.append(" " + notes).toString().trim();
 
         return new PastMeetingImpl(meeting.getId(), meeting.getDate(), meeting.getContacts(), fullNotes);
     }
