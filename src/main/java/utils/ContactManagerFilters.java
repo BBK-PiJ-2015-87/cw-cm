@@ -6,7 +6,6 @@ import interfaces.Meeting;
 import java.util.Calendar;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -47,10 +46,6 @@ public class ContactManagerFilters {
 
     public static List<Meeting> filterFutureMeetingsWithContact(List<? super Meeting> meetings, Contact contact, Calendar now) {
         return customMeetingFilter(meetings, isFutureMeeting(now), meetingWithContact(contact), new DateComparator());
-    }
-
-    public static List<Meeting> filterFutureMeetingsOnDate(List<? super Meeting> meetings, Calendar now, Calendar date) {
-        return customMeetingFilter(meetings, isFutureMeeting(now), meetingOn(date), new DateComparator());
     }
 
     public static List<? super Meeting> filterPastMeetingsByContact(List<? super Meeting> meetings, Contact contact, Calendar now) {
