@@ -5,7 +5,7 @@ import interfaces.Meeting;
 import java.util.Comparator;
 
 /**
- * Helper class to compare dates in the meetings.
+ * Helper class for ordering meetings in the list.
  *
  * Created by Vladimirs Ivanovs on 10/03/2016.
  */
