@@ -5,9 +5,13 @@ import interfaces.PastMeeting;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
 import static junit.framework.TestCase.assertTrue;
@@ -524,6 +528,21 @@ public class ContactManagerImplTest {
         Set<Contact> contacts = cm.getContacts(ids);
 
         assertThat(contacts.size(), is(4));
+    }
+
+    //FLUSH
+
+    @Test
+    public void shouldFlushFileCorrectly() {
+        cm.flush();
+
+        try (Stream<String> stream = Files.lines(Paths.get("contacts.txt"))){
+            stream.forEach(s -> s.contains("participants"));
+//            stream.forEach(System.out::println);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
 }
