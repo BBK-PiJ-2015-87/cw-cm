@@ -5,6 +5,8 @@ import java.util.Calendar;
 import java.util.Set;
 
 /**
+ * Past meeting implementation class.
+ *
  * Created by Vladimirs Ivanovs on 19/01/16.
  */
 public class PastMeetingImpl extends MeetingImpl implements PastMeeting {

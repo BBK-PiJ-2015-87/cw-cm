@@ -5,6 +5,8 @@ import java.util.Calendar;
 import java.util.Set;
 
 /**
+ * Future meeting implementation class.
+ *
  * Created by Vladimirs Ivanovs on 19/01/16.
  */
 public class FutureMeetingImpl extends MeetingImpl implements FutureMeeting {

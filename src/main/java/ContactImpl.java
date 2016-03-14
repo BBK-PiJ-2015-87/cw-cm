@@ -8,6 +8,8 @@ import java.io.Serializable;
 import java.util.Objects;
 
 /**
+ * Contact implementation class.
+ *
  * Created by Workstation on 19/01/16.
  */
 
