@@ -22,7 +22,7 @@ public class MeetingImpl implements Meeting {
 
     private Calendar date;
 
-    @XmlElementWrapper(name = "contacts")
+    @XmlElementWrapper(name = "participants")
     @XmlAnyElement
     private Set<Contact> contacts;
 
