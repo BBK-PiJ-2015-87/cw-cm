@@ -3,9 +3,7 @@ package utils;
 import interfaces.Contact;
 import interfaces.Meeting;
 
-import java.util.Calendar;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -36,6 +34,20 @@ public class ContactManagerFilters {
                 .collect(Collectors.<Meeting>toList());
     }
 
+    /**
+     * Custom method to filter contacts.
+     *
+     * @param contacts set of contacts to be filtered
+     * @param predicate
+     * @return set of filtered contacts according to predicate
+     */
+    public static Set<Contact> customContactFilter(Set<Contact> contacts, Predicate<Contact> predicate) {
+        return contacts.stream()
+                .filter(predicate)
+                .collect(Collectors.toSet());
+    }
+
+
     public static List<Meeting> filterAnyMeetingsWithID(List<? super Meeting> meetings, int id) {
         return customMeetingFilter(meetings,  meetingWithID(id), dummyPredicate(), new DateComparator());
     }
@@ -48,7 +60,15 @@ public class ContactManagerFilters {
         return customMeetingFilter(meetings, isFutureMeeting(now), meetingWithContact(contact), new DateComparator());
     }
 
-    public static List<? super Meeting> filterPastMeetingsByContact(List<? super Meeting> meetings, Contact contact, Calendar now) {
-        return customMeetingFilter(meetings, isPastMeeting(now), meetingWithContact(contact), new DateComparator());
+    public static List<? super Meeting> filterPastMeetingsByContact(List<? super Meeting> meetings, Contact contact) {
+        return customMeetingFilter(meetings, isPastMeeting(new GregorianCalendar()), meetingWithContact(contact), new DateComparator());
+    }
+
+    public static Set<Contact> filterContactsWithName(Set<Contact> contacts, String nameContains) {
+        return customContactFilter(contacts, contactWithName(nameContains));
+    }
+
+    public static Set<Contact> filterContactsWithId(Set<Contact> contacts, List<Integer> ids) {
+        return customContactFilter(contacts, contactWithID(ids));
     }
 }

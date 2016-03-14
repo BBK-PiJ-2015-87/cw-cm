@@ -76,15 +76,15 @@ public class ContactManagerPredicates {
      * @return
      */
     public static Predicate<Contact> contactWithName(String name) {
-        return contact -> contact.getName().equals(name);
+        return contact -> contact.getName().contains(name);
     }
 
     /**
      *
-     * @param id
+     * @param ids
      * @return
      */
-    public static Predicate<Contact> contactWithID(int id) {
-        return contact -> contact.getId() == id;
+    public static Predicate<Contact> contactWithID(List<Integer> ids) {
+        return contact -> ids.contains(contact.getId());
     }
 }

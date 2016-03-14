@@ -93,7 +93,7 @@ public class ContactManagerImplTest {
 
         Calendar future = new GregorianCalendar(2500, 0, 10);
 
-        cm.updateStatus(future);
+        cm.testUpdateStatus(future);
 
         cm.getMeetings().stream()
                 .map(meeting -> (Meeting) meeting)
@@ -539,7 +539,6 @@ public class ContactManagerImplTest {
         try (Stream<String> stream = Files.lines(Paths.get("contacts.txt"))){
             stream.forEach(s -> s.contains("participants"));
 //            stream.forEach(System.out::println);
-
         } catch (IOException e) {
             e.printStackTrace();
         }

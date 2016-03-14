@@ -93,6 +93,7 @@ public class ContactManagerImpl implements ContactManager {
      */
     @Override
     public PastMeeting getPastMeeting(int id) {
+        updateStatusForNow();
         return returnPastOrThrow(findMeetingBy(id));
     }
 
@@ -106,6 +107,7 @@ public class ContactManagerImpl implements ContactManager {
      */
     @Override
     public FutureMeeting getFutureMeeting(int id) {
+        updateStatusForNow();
         return returnFutureOrThrow(findMeetingBy(id));
     }
 
@@ -117,6 +119,7 @@ public class ContactManagerImpl implements ContactManager {
      */
     @Override
     public Meeting getMeeting(int id) {
+        updateStatusForNow();
         return returnMeetingOrNull(findMeetingBy(id));
     }
 
@@ -139,6 +142,8 @@ public class ContactManagerImpl implements ContactManager {
         } else if (!allContacts.contains(contact)){
             throw new IllegalArgumentException();
         }
+
+        updateStatusForNow();
         Calendar now = new GregorianCalendar();
         return filterFutureMeetingsWithContact(meetings, contact, now );
     }
@@ -158,6 +163,8 @@ public class ContactManagerImpl implements ContactManager {
     @Override
     public List<Meeting> getMeetingListOn(Calendar date) {
         if (date == null) throw new NullPointerException();
+
+        updateStatusForNow();
         return filterAnyMeetingsOnDate(meetings, date);
     }
 
@@ -175,15 +182,15 @@ public class ContactManagerImpl implements ContactManager {
      */
     @Override
     public List<PastMeeting> getPastMeetingListFor(Contact contact) {
-        Calendar now = new GregorianCalendar();
-        updateStatus(now);
+        updateStatusForNow();
+
         if (contact == null) {
             throw new NullPointerException();
         }else if (!allContacts.contains(contact)) {
             throw new IllegalArgumentException();
         }
 
-        List<PastMeeting> result = filterPastMeetingsByContact(meetings, contact, now).stream()
+        List<PastMeeting> result = filterPastMeetingsByContact(meetings, contact).stream()
                 .map(m -> (PastMeeting)m)
                 .collect(Collectors.toList());
 
@@ -228,7 +235,7 @@ public class ContactManagerImpl implements ContactManager {
      */
     @Override
     public PastMeeting addMeetingNotes(int id, String text) {
-
+        updateStatusForNow();
         Optional<Meeting> returnedMeeting = findMeetingBy(id);
 
         if (text == null){
@@ -286,14 +293,12 @@ public class ContactManagerImpl implements ContactManager {
             return allContacts;
         }
 
-        Set<Contact> contacts = allContacts.stream()
-                .filter(contact -> contact.getName().contains(name))
-                .collect(Collectors.toSet());
+        Set<Contact> contacts = filterContactsWithName(allContacts, name);
         return contacts;
     }
 
     /**
-     * Returns a list containing the allContacts that correspond to the IDs.
+     * Returns a list containing the contacts that correspond to the IDs.
      * Note that this method can be used to retrieve just one contact by passing only one ID.
      *
      * @param ids an arbitrary number of contact IDs
@@ -304,15 +309,11 @@ public class ContactManagerImpl implements ContactManager {
     @Override
     public Set<Contact> getContacts(int... ids) {
         if (ids == null) throw new IllegalArgumentException();
-
-        Set<Integer> allIDs = getExistingIDs(allContacts);
         List<Integer> providedIds = IntStream.of(ids).boxed().collect(Collectors.toList());
 
-        if (!allIDs.containsAll(providedIds))throw new IllegalArgumentException();
+        if (!getExistingIDsOf(allContacts).containsAll(providedIds))throw new IllegalArgumentException();
 
-        return allContacts.stream()
-                .filter(contact -> providedIds.contains(contact.getId()))
-                .collect(Collectors.toSet());
+        return filterContactsWithId(allContacts, providedIds);
     }
 
     /**
@@ -325,9 +326,7 @@ public class ContactManagerImpl implements ContactManager {
     public void flush() {
         JAXBContext jaxbContext = null;
         Marshaller jaxbMarshaller = null;
-
         File file = new File("contacts.txt");
-
         try {
             jaxbContext = JAXBContext.newInstance(ContactManagerImpl.class);
             jaxbMarshaller = jaxbContext.createMarshaller();
@@ -340,7 +339,20 @@ public class ContactManagerImpl implements ContactManager {
 
     //HELPER METHODS
 
-    public static void updateStatus(Calendar date) {
+    /**
+     * Updates status of meetings in the list for current moment in time.
+     */
+    private static void updateStatusForNow() {
+        Calendar now = new GregorianCalendar();
+        updateStatus(now);
+    }
+
+    /**
+     * Updates status of meetings in the list.
+     *
+     * @param date according to which list will be updated
+     */
+    private static void updateStatus(Calendar date) {
         List<Meeting> casted = (List<Meeting>)meetings;
         List<? super Meeting> updated = casted.stream()
                 .map(meeting -> {
@@ -352,6 +364,7 @@ public class ContactManagerImpl implements ContactManager {
                 .collect(Collectors.toList());
         meetings = updated;
     }
+
 
     /**
      * Helper method. Returns value of optional.
@@ -371,17 +384,17 @@ public class ContactManagerImpl implements ContactManager {
     }
 
     /**
-     * Helper method. Returns value of optional.
+     * Wrapper method. Returns meeting or null if optional is empty.
      *
      * @param matchedMeeting optional of a meeting
-     * @return
+     * @return meeting or null
      */
     private Meeting returnMeetingOrNull(Optional<Meeting> matchedMeeting) {
        return (matchedMeeting.isPresent()) ? matchedMeeting.get() : null;
     }
 
     /**
-     * Helper method. Returns value of optional.
+     * Wrapper method. Returns value of meeting or null. If meeting is in the past throws an exception.
      *
      * @param matchedMeeting optional of a meeting
      * @return past meeting or null
@@ -409,24 +422,24 @@ public class ContactManagerImpl implements ContactManager {
 
 
     /**
-     * Wrapper method to generate unique id based on ids of elements in a collection.
+     * Generates unique id based on ids of elements in a collection.
      *
-     * @param collection
-     * @param <T>
-     * @return
+     * @param collection with existing elements
+     * @param <T> type of elements
+     * @return int ID unique for this collection
      */
     private static <T> int generateUniqueId(Collection<T> collection) {
-        return generateNewNumber(getExistingIDs(collection));
+        return generateNewNumber(getExistingIDsOf(collection));
     }
 
     /**
-     * Generic method to return all IDs of a collection, where element have getId method.
+     * Returns all IDs of a given collection, where element have getId method.
      *
-     * @param collection
-     * @param <T>
+     * @param collection to collect with elements with IDs
+     * @param <T> type of elements
      * @return Set of all unique IDs of elements of a collection
      */
-    private static <T> Set<Integer> getExistingIDs(Collection<T> collection) {
+    private static <T> Set<Integer> getExistingIDsOf(Collection<T> collection) {
         return collection.stream()
                 .map(object -> {
                     int id = 0;
@@ -463,9 +476,9 @@ public class ContactManagerImpl implements ContactManager {
      */
     private static PastMeeting toPastMeetingWithNotes(Meeting meeting, String notes) {
         StringBuilder stringBuilder = new StringBuilder();
-        if (meeting instanceof PastMeeting){
-            stringBuilder.append(((PastMeeting) meeting).getNotes());
-        }
+
+        //get existing notes if meeting is past
+        if (meeting instanceof PastMeeting) stringBuilder.append(((PastMeeting) meeting).getNotes());
 
         String fullNotes = stringBuilder.append(" " + notes).toString().trim();
 
@@ -479,10 +492,14 @@ public class ContactManagerImpl implements ContactManager {
      * @return copy of a meeting with FutureMeeting type
      */
     private static FutureMeeting toFutureMeeting(Meeting meeting) {
-        if (meeting instanceof FutureMeeting){
-            return (FutureMeeting) meeting;
-        } else {
-            return new FutureMeetingImpl(meeting.getId(), meeting.getDate(), meeting.getContacts());
-        }
+        return new FutureMeetingImpl(meeting.getId(), meeting.getDate(), meeting.getContacts());
+    }
+
+    /**
+     * Wrapper method for testing purposes;
+     * @param date
+     */
+    public static void testUpdateStatus(Calendar date) {
+        updateStatus(date);
     }
 }
