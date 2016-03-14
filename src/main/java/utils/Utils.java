@@ -1,6 +1,7 @@
 package utils;
 
 import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.Set;
 
 /**
@@ -34,8 +35,8 @@ public class Utils {
      * @return true if date is in the future, false otherwise
      */
     public static boolean isFuture(Calendar date) {
-        Calendar now = Calendar.getInstance();
-        if (date.compareTo(now) == 1) {
+        Calendar now = new GregorianCalendar();
+        if (date.compareTo(now) >= 1) {
             return true;
         }
         return false;
